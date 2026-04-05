@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenge Grind</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #09090b;
+            --card-bg: #121216;
+            --card-border: #22222a;
+            --text-main: #ffffff;
+            --text-muted: #8e8e9f;
+            --accent-1: #ff9a00;
+            --accent-2: #ffce00;
+            --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            --points-color: #ffce00;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            background-image: radial-gradient(circle at top right, #1a1410 0%, transparent 40%),
+                              radial-gradient(circle at bottom left, #12100a 0%, transparent 40%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding-bottom: 80px; 
+        }
+
+        header {
+            background-color: rgba(9, 9, 11, 0.95);
+            border-bottom: 1px solid var(--card-border);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .logo:hover { transform: scale(1.02); }
+
+        .logo span {
+            background: var(--accent-gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+            margin-top: 6px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--accent-2);
+        }
+
+        .btn-submit-nav {
+            background: var(--accent-gradient);
+            color: #000 !important;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 800;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 14px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-left: 10px;
+        }
+
+        .btn-submit-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 154, 0, 0.3);
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            position: relative; 
+            z-index: 2;
+        }
+
+        .page-title {
+            font-size: 38px;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .contributor-text {
+            color: var(--text-muted);
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 30px;
+        }
+
+        .contributor-text span {
+            color: #d1d1dd;
+            font-weight: 600;
+        }
+
+        #home-view {
+            text-align: center;
+            padding: 60px 20px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .hero-title {
+            font-size: 60px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: var(--accent-gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+
+        .hero-subtitle {
+            font-size: 18px;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 40px auto;
+            line-height: 1.6;
+        }
+
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 60px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: #000;
+            border: none;
+            padding: 14px 32px;
+            font-size: 16px;
+            font-weight: 800;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 154, 0, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-main);
+            border: 2px solid var(--card-border);
+            padding: 14px 32px;
+            font-size: 16px;
+            font-weight: 800;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-1);
+            color: var(--accent-2);
+            background: rgba(255, 154, 0, 0.05);
+            transform: translateY(-3px);
+        }
+
+        .play-btn-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 55px;
+            height: 55px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid var(--accent-1);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            backdrop-filter: blur(4px);
+        }
+
+        .play-btn-overlay:hover {
+            background: var(--accent-gradient);
+            border-color: transparent;
+            transform: translate(-50%, -50%) scale(1.15);
+            box-shadow: 0 0 20px rgba(255, 154, 0, 0.6);
+        }
+
+        .play-icon {
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 10px 0 10px 16px;
+            border-color: transparent transparent transparent #ffffff;
+            margin-left: 5px;
+            transition: border-color 0.3s;
+        }
+
+        .play-btn-overlay:hover .play-icon {
+            border-color: transparent transparent transparent #000000;
+        }
+
+        .changelog-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .changelog-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: var(--accent-gradient);
+        }
+
+        .changelog-title {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-main);
+        }
+
+        .changelog-item {
+            border-left: 2px solid var(--card-border);
+            padding-left: 20px;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .changelog-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            background: var(--accent-1);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-1);
+        }
+
+        .changelog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .version-badge {
+            background: var(--accent-gradient);
+            color: #000;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .version-date {
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .changelog-desc {
+            color: #c9c9d6;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        #lists-view {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .category-selector {
+            display: inline-flex;
+            background-color: var(--card-bg);
+            padding: 6px;
+            border-radius: 12px;
+            margin-bottom: 35px;
+            border: 1px solid var(--card-border);
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            background-color: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .category-btn.active {
+            background: var(--accent-gradient);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(255, 154, 0, 0.2);
+        }
+
+        .category-btn:hover:not(.active) {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .level-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .level-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            display: flex;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            height: 150px;
+            position: relative;
+        }
+
+        .level-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0; width: 3px;
+            background: var(--accent-gradient);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .level-card:hover {
+            transform: translateY(-4px) scale(1.01);
+            border-color: #38384b;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+        }
+
+        .level-card:hover::before { opacity: 1; }
+
+        .level-image {
+            width: 260px;
+            min-width: 260px;
+            background-color: #0a0a0d;
+            position: relative;
+        }
+
+        .level-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .level-card:hover .level-image img {
+            transform: scale(1.05);
+        }
+
+        .level-info {
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex-grow: 1;
+            z-index: 2;
+            background: linear-gradient(90deg, var(--card-bg) 0%, transparent 100%);
+        }
+
+        .level-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rank { color: var(--accent-1); }
+
+        .level-details {
+            display: flex;
+            gap: 25px;
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+
+        .detail-item {
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        .label {
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-right: 4px;
+        }
+
+        .level-points {
+            margin-left: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-end;
+            padding-right: 35px;
+        }
+
+        .points-value {
+            font-size: 28px;
+            font-weight: 800;
+            background: var(--accent-gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .points-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        #leaderboard-view {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .leaderboard-container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .lb-list-panel {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .lb-info-panel {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 30px;
+            min-height: 500px;
+            position: sticky;
+            top: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px 20px;
+            border: 2px dashed var(--card-border);
+            border-radius: 12px;
+            background: rgba(0,0,0,0.2);
+            font-size: 15px;
+            margin: auto;
+            width: 100%;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 850px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            transform: scale(0.9) translateY(30px);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 32px;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            z-index: 10;
+            transition: color 0.2s, transform 0.2s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .modal-close:hover {
+            color: #fff;
+            background: rgba(0,0,0,0.8);
+            transform: rotate(90deg);
+        }
+
+        .modal-header { position: relative; height: 220px; background: #000; }
+        .modal-header img {
+            width: 100%; height: 100%; object-fit: cover; opacity: 0.6;
+            mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+        }
+        .modal-title-area { position: absolute; bottom: 25px; left: 35px; }
+        .modal-title-area h2 { font-size: 36px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
+
+        .modal-body { padding: 35px; }
+
+        .modal-stats {
+            display: flex; flex-wrap: wrap; gap: 30px; margin-bottom: 35px;
+            background: rgba(0,0,0,0.2); padding: 20px 25px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .records-section h3 {
+            font-size: 22px; margin-bottom: 20px; border-bottom: 2px solid var(--card-border);
+            padding-bottom: 12px; color: var(--accent-2);
+        }
+
+        .tg-float-btn {
+            position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px;
+            background: var(--card-bg); border: 2px solid var(--accent-1); border-radius: 30px;
+            display: flex; align-items: center; justify-content: flex-start; padding-left: 14px;
+            text-decoration: none; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s, box-shadow 0.3s;
+            z-index: 999;
+        }
+
+        .tg-float-btn:hover {
+            width: 280px; background: var(--accent-gradient);
+            box-shadow: 0 10px 25px rgba(255, 154, 0, 0.4); border-color: transparent;
+        }
+
+        .tg-icon {
+            min-width: 28px; height: 28px; color: var(--accent-1); transition: color 0.3s;
+            fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+        }
+
+        .tg-float-btn:hover .tg-icon { color: #000; }
+
+        .tg-text {
+            color: #000; font-weight: 800; font-size: 15px; white-space: nowrap;
+            margin-left: 15px; opacity: 0; transform: translateX(10px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .tg-float-btn:hover .tg-text { opacity: 1; transform: translateX(0); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bg-star {
+            position: fixed;
+            background-color: rgba(255, 206, 0, 0.4); 
+            box-shadow: 0 0 15px rgba(255, 154, 0, 0.6); 
+            border-radius: 50%;
+            bottom: -20px;
+            pointer-events: none;
+            z-index: 1;
+            animation: starFloat linear infinite;
+        }
+
+        @keyframes starFloat {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            10% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(-110vh) scale(0.5); opacity: 0; }
+        }
+
+        @media (max-width: 900px) {
+            .leaderboard-container {
+                grid-template-columns: 1fr;
+            }
+            .lb-info-panel {
+                position: static;
+                min-height: 300px;
+            }
+        }
+        @media (max-width: 768px) {
+            .level-card { height: auto; flex-direction: column; }
+            .level-image { width: 100%; height: 180px; }
+            .level-points { margin: 0; padding: 0 25px 25px 25px; align-items: flex-start; }
+            header { flex-direction: column; gap: 20px; padding: 20px; }
+            nav { flex-direction: column; gap: 15px; }
+            .nav-links { margin-top: 0; }
+            .hero-title { font-size: 40px; }
+            .hero-actions { flex-direction: column; padding: 0 20px; }
+            .tg-float-btn { bottom: 20px; right: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo" onclick="navigateTo('home')">Challenge <span>Grind</span></div>
+        <nav>
+            <div class="nav-links">
+                <a id="nav-lists" onclick="navigateTo('lists')">Lists</a>
+                <a id="nav-leaderboard" onclick="navigateTo('leaderboard')">Leaderboard</a>
+            </div>
+            <a href="#" class="btn-submit-nav">Submit Record</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="home-view">
+            <h1 class="hero-title">Challenge Grind</h1>
+            <p class="hero-subtitle">Челлендж лист телеграм канала Challenge Grind. Докажи свой скилл, отправляй рекорды и поднимайся в таблице лидеров! (СКОРО)</p>
+            
+            <div class="hero-actions">
+                <button class="btn-primary" onclick="navigateTo('lists')">Открыть Листы</button>
+                <button class="btn-secondary" onclick="alert('Функция отправки рекордов в разработке!')">Отправить Рекорд</button>
+            </div>
+
+            <div class="changelog-container">
+                <div class="changelog-title">📋 Changelog</div>
+                <div class="changelog-item">
+                    <div class="changelog-header">
+                        <span class="version-badge">v0.1-alpha</span>
+                        <span class="version-date">16.03.2026</span>
+                    </div>
+                    <div class="changelog-desc">
+                        Сайт официально открыт!
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="lists-view">
+            <h1 class="page-title" id="page-title-text">Challenge List</h1>
+            <p class="contributor-text">Thumbnail Contributor: <span>ItzTheRealMint</span></p>
+
+            <div class="category-selector">
+                <button class="category-btn active" onclick="switchCategory('challenge', this)">Challenge List</button>
+                <button class="category-btn" onclick="switchCategory('spam', this)">Spam Challenge List</button>
+                <button class="category-btn" onclick="switchCategory('impossible', this)">Impossible List</button>
+            </div>
+
+            <div class="level-list" id="level-list">
+            </div>
+        </section>
+
+        <section id="leaderboard-view">
+            <h1 class="page-title">Leaderboard</h1>
+            
+            <div class="leaderboard-container">
+                <div class="lb-list-panel">
+                    <div class="empty-state">
+                        Таблица лидеров пока пуста.<br>Будь первым, кто попадет сюда!
+                    </div>
+                </div>
+
+                <div class="lb-info-panel">
+                    <div class="empty-state" style="border: none; background: transparent;">
+                        Выберите игрока слева,<br>чтобы увидеть подробную статистику
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <a href="https://t.me/CHALLENGE_GRIND" target="_blank" class="tg-float-btn">
+        <svg class="tg-icon" viewBox="0 0 24 24">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+        <span class="tg-text">t.me/CHALLENGE_GRIND</span>
+    </a>
+
+    <div class="modal-overlay" id="level-modal">
+        <div class="modal-content">
+            <div class="modal-close" onclick="closeModal()">×</div>
+            <div class="modal-header">
+                <img id="modal-img" src="" alt="Level Image">
+                <div class="modal-title-area">
+                    <h2 id="modal-title">Level Name</h2>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="modal-stats">
+                    <div class="detail-item"><span class="label">Publisher:</span> <span id="modal-pub"></span></div>
+                    <div class="detail-item"><span class="label" id="modal-ver-label">Verifier:</span> <span id="modal-ver"></span></div>
+                    <div class="detail-item"><span class="label">ID:</span> <span id="modal-id"></span></div>
+                    <div class="detail-item" id="modal-min-container" style="display:none;"><span class="label">Minimum:</span> <span id="modal-min"></span></div>
+                    <div class="detail-item" id="modal-pts-container"><span class="label">Points:</span> <span id="modal-pts" style="color: var(--points-color); font-weight: 800;"></span></div>
+                    <div class="detail-item" id="modal-note-container" style="display:none; color: #ff4444; width: 100%;"><span class="label">Note:</span> <span id="modal-note"></span></div>
+                </div>
+
+                <div class="records-section">
+                    <h3>Records</h3>
+                    <div class="empty-state">
+                        !СКОРО!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelector('.modal-close').style.zIndex = "9999";
+        document.querySelector('.modal-close').style.pointerEvents = "auto";
+
+        function calculatePoints(rank) {
+            if (rank > 100) return 0;
+            let points = 100 * Math.pow(0.01 / 100, (rank - 1) / 99);
+            return parseFloat(points.toFixed(2));
+        }
+
+        function fallbackLocalImg(imgElement, imgName, isModal) {
+            if (imgElement.dataset.fallback === "jpg") {
+                imgElement.dataset.fallback = "placeholder";
+                let w = isModal ? 1000 : 500;
+                let h = isModal ? 400 : 250;
+                imgElement.src = `https://placehold.co/${w}x${h}/1a1a24/555555?text=No+Image`;
+            } else if (imgElement.dataset.fallback !== "placeholder") {
+                imgElement.dataset.fallback = "jpg";
+                imgElement.src = `images/${imgName}.jpg`;
+            }
+        }
+
+// важная инфа: с помощью атрибута video: "" , можно добавить ссылку к превьюшке (будет кнопка-значок PLAY, чтобы перенаправить вас к ссылке шоукейса или верифа уровня)
+        const challengeList = [
+            { rank: 1, name: "Mint Dance", pub: "ItzTheRealMint", ver: "ItzTheRealMint", id: "136869621", img: "ab" },
+            { rank: 2, name: "firedust III", pub: "GGBOBR", ver: "MezZzGD", id: "135629079", img: "a" },
+            { rank: 3, name: "firework of dex", pub: "GMDTETO", ver: "MezZzGD", id: "136472433", img: "ac" },
+            { rank: 4, name: "Nine Circles of CEX", pub: "GMDTETO", ver: "LevkaLevka", id: "133941925", img: "b" },
+            { rank: 5, name: "FGDM", pub: "QazarItz", ver: "ItzTheRealMint", id: "135743492", img: "c" },
+            { rank: 6, name: "Pyro Fantasy", pub: "PyrOwO", ver: "ItzTheRealMint", id: "135773870", img: "d" },
+            { rank: 7, name: "NLC III", pub: "ItzTheRealMint", ver: "ItzTheRealMint", id: "135952902", img: "asdw" },
+            { rank: 8, name: "AYRELIA2026", pub: "ItzTheRealMint", ver: "ItzTheRealMint", id: "132947188", img: "e" },
+            { rank: 9, name: "ZIZAZU", pub: "ItzTheRealMint", ver: "ItzTheRealMint", id: "135620385", img: "f" },
+            { rank: 10, name: "Lost Angels", pub: "PyrOwO", ver: "ItzTheRealMint", id: "135559088", img: "g" },
+            { rank: 11, name: "Hella hard", pub: "LevkaLevka", ver: "LevkaLevka", id: "135608220", img: "h" },
+            { rank: 12, name: "silentCircles of Dex", pub: "GGBOBR", ver: "GGBOBR", id: "135179431", img: "i" },
+            { rank: 13, name: "Last Chamber", pub: "BunnyCube", ver: "BunnyCube/PyrOwO", id: "100898598", img: "j" },
+            { rank: 14, name: "monstryuga", pub: "ItzTheRealMint", ver: "ItzTheRealMint", id: "135888148", img: "aa" },
+            { rank: 15, name: "bSUSGUY TIME", pub: "GMDTETO", ver: "GMDTETO", id: "135276971", img: "k" },
+            { rank: 16, name: "samsung galaxy", pub: "BunnyCube", ver: "ItzTheRealMint", id: "129800754", img: "l" },
+            { rank: 17, name: "challenge I", pub: "BunnyCube", ver: "ItzTheRealMint", id: "99748351", img: "m" },
+            { rank: 18, name: "Killbot challenge", pub: "BunnyCube", ver: "BunnyCube/PyrOwO", id: "135940393", img: "ae" },
+            { rank: 19, name: "i like the spider pa", pub: "LevkaLevka", ver: "LevkaLevka", id: "135529827", img: "n" },
+            { rank: 20, name: "ball test buff", pub: "youpoop228", ver: "youpoop228", id: "135203613", img: "o" },
+            { rank: 21, name: "go challenge", pub: "Bnnchk", ver: "Bnnchk", id: "135225230", img: "p" },
+            { rank: 22, name: "Red Roze", pub: "Bnnchk", ver: "Bnnchk", id: "135217993", img: "q" },
+            { rank: 23, name: "challenge II", pub: "BunnyCube", ver: "ItzTheRealMint", id: "99823329", img: "r" },
+            { rank: 24, name: "One eight", pub: "TururuTuturu", ver: "TururuTuturu", id: "135632572", img: "s" },
+            { rank: 25, name: "DUAL FAHHH", pub: "GMDTETO", ver: "GMDTETO", id: "135336612", img: "t" },
+            { rank: 26, name: "WOBN", pub: "GMDTETO", ver: "GGBOBR", id: "135020844", img: "u" },
+            { rank: 27, name: "dual iii click", pub: "GMEDEchubaka", ver: "ItzTheRealMint", id: "136050104", img: "af" },
+            { rank: 28, name: "You Win", pub: "BunnyCube", ver: "ItzTheRealMint", id: "99238174", img: "v" },
+            { rank: 29, name: "Night drive", pub: "oiloogd", ver: "oiloogd", id: "135982928", img: "ag" },
+            { rank: 30, name: "pink blizzard", pub: "BunnyCube", ver: "ItzTheRealMint", id: "103799524", img: "w" },
+            { rank: 31, name: "NLC", pub: "GGBOBR", ver: "GGBOBR", id: "134101987", img: "x" },
+            { rank: 32, name: "NLC II", pub: "GGBOBR", ver: "GGBOBR", id: "134134385", img: "y" },
+            { rank: 33, name: "cycles ship", pub: "GMDTETO", ver: "GMDTETO", id: "135004513", img: "z" },
+            { rank: 34, name: "FIND THE DUAL", pub: "GMDTETO", ver: "GMDTETO", id: "136943548", img: "ah" },
+            { rank: 35, name: "HAPKOTNKN", pub: "GMDTETO", ver: "GMDTETO", id: "136281044", img: "ai" }
+        ];
+
+        const spamList = [
+            { rank: 1, name: "Alive wave", pub: "LevkaLevka", ver: "LevkaLevka", id: "135653245", img: "a1" },
+            { rank: 2, name: "Dead wave", pub: "LevkaLevka", ver: "LevkaLevka", id: "135635042", img: "b1" },
+            { rank: 3, name: "SUPAMMM", pub: "Mint", ver: "Mint", id: "135725677", img: "c1" },
+            { rank: 4, name: "SV Spam", pub: "QiwiCZ", ver: "LevkaLevka", id: "135525663", img: "d1" },
+            { rank: 5, name: "Grief spam", pub: "QiwiCZ", ver: "QiwiCZ", id: "135714064", img: "e1" },
+            { rank: 6, name: "Flap", pub: "LevkaLevka", ver: "LevkaLevka", id: "135514827", img: "f1" },
+            { rank: 7, name: "iLikeSpam", pub: "LevkaLevka", ver: "LevkaLevka", id: "135512716", img: "g1" },
+            { rank: 8, name: "Last Chamber", pub: "Pyro", ver: "Pyro", id: "100898598", img: "h1" },
+            { rank: 9, name: "Spam circles of dex", pub: "ggbobr", ver: "ggbobr", id: "135205546", img: "i1" },
+            { rank: 10, name: "Spamchik", pub: "Bnnchk", ver: "Bnnchk", id: "135258929", img: "j1" }
+        ];
+
+        const impossibleList = [
+            { rank: 1, name: "Goddamn", pub: "Oiloogd", wr: "None", min: "2%", note: "SKIP WITH 1-5 TPS IS NOT LEGIT.", id: "???", img: "a2" },
+            { rank: 2, name: "Luua", pub: "GmedeChubaka", wr: "None", min: "...%", id: "135797546", img: "b2" },
+            { rank: 3, name: "Firedust II [NME]", pub: "GGbobr", wr: "34% By Pyro", min: "36%", id: "134760376", img: "c2" },
+            { rank: 4, name: "Babydoll perfect", pub: "TururuTuturu", wr: "12% by Pyro", min: "13%", id: "???", img: "d2" },
+            { rank: 5, name: "Di3", pub: "GmedeChubaka", wr: "none by none", min: "13%", id: "135653646", img: "e2" },
+            { rank: 6, name: "If p2p was 2p [NME]", pub: "Itzbatlix", wr: "none by none", min: "...%", id: "135743274", img: "f2" },
+            { rank: 7, name: "RRRR [NME]", pub: "levkalevka", wr: "none by none", min: "7%", id: "135543215", img: "g2" },
+            { rank: 8, name: "Shadow empathy [NME]", pub: "Mrnekrongd", wr: "none by none", min: "7%", id: "135624161", img: "h2" },
+            { rank: 9, name: "Nine circles of P2P", pub: "Itzbatlix", wr: "none by none", min: "7%", id: "135634595", img: "i2" },
+            { rank: 10, name: "Nine Circles of CEX II", pub: "Itzbatlix", wr: "19% By MTSgmd", id: "135438326", img: "j2" }
+        ];
+
+        function navigateTo(view) {
+            document.getElementById('home-view').style.display = view === 'home' ? 'block' : 'none';
+            document.getElementById('lists-view').style.display = view === 'lists' ? 'block' : 'none';
+            document.getElementById('leaderboard-view').style.display = view === 'leaderboard' ? 'block' : 'none';
+            
+            document.getElementById('nav-lists').classList.toggle('active', view === 'lists');
+            document.getElementById('nav-leaderboard').classList.toggle('active', view === 'leaderboard');
+
+            if (view === 'lists') {
+                const firstCatBtn = document.querySelector('.category-btn');
+                switchCategory('challenge', firstCatBtn);
+            }
+        }
+
+        function renderLevels(data, isImpossible = false) {
+            const listContainer = document.getElementById('level-list');
+            listContainer.innerHTML = '';
+            
+            if (data.length === 0) {
+                listContainer.innerHTML = '<div class="empty-state" style="margin-top: 20px;">!СКОРО!</div>';
+                return;
+            }
+
+            data.forEach(level => {
+                const card = document.createElement('div');
+                card.className = 'level-card';
+                card.onclick = () => openModal(level, isImpossible);
+
+                let pointsHtml = '';
+                if (!isImpossible) {
+                    let levelPoints = calculatePoints(level.rank);
+                    pointsHtml = `
+                    <div class="level-points">
+                        <div class="points-value">${levelPoints}</div>
+                        <div class="points-label">Points</div>
+                    </div>`;
+                }
+                
+                let secondStat = level.wr !== undefined 
+                    ? `<div class="detail-item"><span class="label">WR:</span> ${level.wr}</div>` 
+                    : `<div class="detail-item"><span class="label">Verifier:</span> ${level.ver}</div>`;
+                
+                let minStat = level.min ? `<div class="detail-item"><span class="label">Min:</span> ${level.min}</div>` : '';
+
+                let playBtnHtml = level.video 
+                    ? `<div class="play-btn-overlay" onclick="window.open('${level.video}', '_blank'); event.stopPropagation();">
+                           <div class="play-icon"></div>
+                       </div>` 
+                    : '';
+
+                card.innerHTML = `
+                    <div class="level-image">
+                        <img src="images/${level.img}.png" alt="${level.name}" 
+                             data-fallback=""
+                             onerror="fallbackLocalImg(this, '${level.img}', false)">
+                        ${playBtnHtml}
+                    </div>
+                    <div class="level-info">
+                        <div class="level-title">
+                            <span class="rank">#${level.rank}</span> ${level.name}
+                        </div>
+                        <div class="level-details">
+                            <div class="detail-item"><span class="label">Publisher:</span> ${level.pub}</div>
+                            ${secondStat}
+                            <div class="detail-item"><span class="label">ID:</span> ${level.id}</div>
+                            ${minStat}
+                        </div>
+                    </div>
+                    ${pointsHtml}
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        function openModal(level, isImpossible = false) {
+            document.getElementById('modal-title').innerText = `#${level.rank} ${level.name}`;
+            document.getElementById('modal-pub').innerText = level.pub;
+            document.getElementById('modal-id').innerText = level.id;
+
+            const ptsContainer = document.getElementById('modal-pts-container');
+            if (isImpossible) {
+                ptsContainer.style.display = 'none';
+            } else {
+                ptsContainer.style.display = 'block';
+                document.getElementById('modal-pts').innerText = calculatePoints(level.rank);
+            }
+
+            if (level.wr !== undefined) {
+                document.getElementById('modal-ver-label').innerText = 'WR:';
+                document.getElementById('modal-ver').innerText = level.wr;
+            } else {
+                document.getElementById('modal-ver-label').innerText = 'Verifier:';
+                document.getElementById('modal-ver').innerText = level.ver;
+            }
+
+            document.getElementById('modal-min-container').style.display = level.min ? 'block' : 'none';
+            if (level.min) document.getElementById('modal-min').innerText = level.min;
+
+            document.getElementById('modal-note-container').style.display = level.note ? 'block' : 'none';
+            if (level.note) document.getElementById('modal-note').innerText = level.note;
+            
+            const imgEl = document.getElementById('modal-img');
+            imgEl.dataset.fallback = "";
+            imgEl.src = `images/${level.img}.png`;
+            imgEl.onerror = function() { fallbackLocalImg(this, level.img, true); };
+
+            document.getElementById('level-modal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('level-modal').classList.remove('active');
+            setTimeout(() => { document.body.style.overflow = 'auto'; }, 300);
+        }
+
+        document.getElementById('level-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        function switchCategory(category, btnElement) {
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active');
+
+            const title = document.getElementById('page-title-text');
+
+            if (category === 'challenge') {
+                title.innerText = 'Challenge List';
+                renderLevels(challengeList, false);
+            } else if (category === 'spam') {
+                title.innerText = 'Spam Challenge List';
+                renderLevels(spamList, false); 
+            } else if (category === 'impossible') {
+                title.innerText = 'Impossible Challenge List';
+                renderLevels(impossibleList, true); 
+            }
+        }
+
+        function initStars() {
+            const starCount = 50; 
+            for (let i = 0; i < starCount; i++) {
+                let star = document.createElement('div');
+                star.className = 'bg-star';
+                let size = Math.random() * 8 + 4; 
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                star.style.left = Math.random() * 100 + 'vw';
+                star.style.animationDuration = (Math.random() * 15 + 10) + 's'; 
+                star.style.animationDelay = (Math.random() * -30) + 's'; 
+                document.body.appendChild(star);
+            }
+        }
+        initStars();
+    </script>
+</body>
+</html>
