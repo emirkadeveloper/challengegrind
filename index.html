@@ -2805,25 +2805,23 @@ async function saveLevel() {
             // Сдвигаем: все уровни с rank >= targetRank на +1
             const toShift = existingLevels.filter(l => l.rank >= targetRank);
             
-            // Фаза 1: временные отрицательные значения
             for (const level of toShift) {
-                const tempRank = -(level.rank + 100000);
-                const { error } = await supabase
-                    .from('levels')
-                    .update({ rank: tempRank })
-                    .eq('id', level.id);
-                if (error) throw error;
-            }
+    const tempRank = level.rank + 100000; // +100000 вместо отрицательных
+    const { error } = await supabase
+        .from('levels')
+        .update({ rank: tempRank })
+        .eq('id', level.id);
+    if (error) throw error;
+}
             
-            // Фаза 2: финальные значения
             for (const level of toShift) {
-                const newRank = Math.abs(level.rank) - 100000 + 1;
-                const { error } = await supabase
-                    .from('levels')
-                    .update({ rank: newRank })
-                    .eq('id', level.id);
-                if (error) throw error;
-            }
+    const newRank = level.rank - 100000 + 1; // -100000 + 1
+    const { error } = await supabase
+        .from('levels')
+        .update({ rank: newRank })
+        .eq('id', level.id);
+    if (error) throw error;
+}
         }
 
         // Сохраняем уровень
