@@ -2750,24 +2750,12 @@ async function saveLevel() {
         const aboveRank = parseInt(document.getElementById('edit-above-rank').value);
         const belowRank = parseInt(document.getElementById('edit-below-rank').value);
         
-        // Приоритет: авто-вставка > ручной ранг
         if (!isNaN(aboveRank) && !isNaN(belowRank)) {
-            // Выше = меньший ранг, Ниже = больший ранг
-            // Пример: выше 1, ниже 3 → ранг 2
             if (aboveRank >= belowRank) {
                 alert('"Выше топа" должен быть МЕНЬШЕ чем "Ниже топа"\nПример: Выше 1, Ниже 3 → Ранг 2');
                 return;
             }
-            if (belowRank - aboveRank < 2) {
-                alert('Между "выше" и "ниже" должно быть минимум 1 свободное место');
-                return;
-            }
             targetRank = aboveRank + 1;
-            // Проверяем что targetRank действительно между ними
-            if (targetRank >= belowRank) {
-                alert('Некорректные значения. Пример: Выше 1, Ниже 3 → Ранг 2');
-                return;
-            }
         } else if (!isNaN(manualRank)) {
             targetRank = manualRank;
         } else {
@@ -2777,7 +2765,6 @@ async function saveLevel() {
 
         const category = baseData.category;
         
-        // Получаем уровни для сдвига
         let existingLevels;
         if (editingLevelId) {
             const { data, error } = await supabase
@@ -2798,34 +2785,30 @@ async function saveLevel() {
             existingLevels = data || [];
         }
 
-        // Проверяем конфликт
         const conflict = existingLevels.find(l => l.rank === targetRank);
 
         if (conflict) {
-    const toShift = existingLevels.filter(l => l.rank >= targetRank);
-    
-    // Фаза 1: временные большие значения (избегаем отрицательных)
-    for (const level of toShift) {
-        const tempRank = level.rank + 100000;
-        const { error } = await supabase
-            .from('levels')
-            .update({ rank: tempRank })
-            .eq('id', level.id);
-        if (error) throw error;
-    }
-    
-    // Фаза 2: финальные значения (+1 от оригинала)
-    for (const level of toShift) {
-        const newRank = (level.rank - 100000) + 1;
-        const { error } = await supabase
-            .from('levels')
-            .update({ rank: newRank })
-            .eq('id', level.id);
-        if (error) throw error;
-    }
-}
+            const toShift = existingLevels.filter(l => l.rank >= targetRank);
+            
+            // Фаза 1: +100000 (временные большие значения)
+            for (const level of toShift) {
+                const { error } = await supabase
+                    .from('levels')
+                    .update({ rank: level.rank + 100000 })
+                    .eq('id', level.id);
+                if (error) throw error;
+            }
+            
+            // Фаза 2: -99999 (получаем +1 от оригинала)
+            for (const level of toShift) {
+                const { error } = await supabase
+                    .from('levels')
+                    .update({ rank: level.rank - 99999 })
+                    .eq('id', level.id);
+                if (error) throw error;
+            }
+        }
 
-        // Сохраняем уровень
         if (editingLevelId) {
             const { error } = await supabase
                 .from('levels')
