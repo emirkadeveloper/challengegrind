@@ -315,6 +315,110 @@
         .db-status.connected { background: rgba(34,197,94,0.15); color: var(--success); border: 1px solid var(--success); }
         .db-status.local { background: rgba(245,158,11,0.15); color: var(--warning); border: 1px solid var(--warning); }
 
+        @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+#notif-bell:hover svg {
+    color: var(--accent-2) !important;
+}
+
+#notif-bell.has-unread svg {
+    color: var(--error) !important;
+    animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-10deg); }
+    75% { transform: rotate(10deg); }
+}
+
+.notif-dropdown {
+    position: absolute;
+    top: 50px;
+    right: 20px;
+    width: 320px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    z-index: 1000;
+    display: none;
+    overflow: hidden;
+}
+
+.notif-dropdown.active {
+    display: block;
+    animation: fadeIn 0.2s ease;
+}
+
+.notif-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--card-border);
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notif-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.notif-item {
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.notif-item:hover {
+    background: rgba(255,255,255,0.03);
+}
+
+.notif-item.unread {
+    border-left: 3px solid var(--accent-1);
+}
+
+.notif-item.read {
+    opacity: 0.6;
+}
+
+.notif-icon {
+    font-size: 20px;
+    min-width: 24px;
+}
+
+.notif-content {
+    flex: 1;
+}
+
+.notif-text {
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text-main);
+}
+
+.notif-time {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+}
+
+.notif-empty {
+    padding: 30px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 13px;
+}
+
                 /* Profile Modal Styles */
         #profile-modal .modal-content {
             max-width: 700px;
@@ -522,10 +626,29 @@
                 <a id="nav-admin" onclick="navigateTo('admin')" style="display:none;color:var(--error);">Admin</a>
             </div>
             <div class="user-menu" id="user-menu">
-                <button class="btn-nav" onclick="openAuth('login')">Login</button>
-                <button class="btn-nav-outline" onclick="openAuth('register')">Register</button>
-            </div>
+    <button class="btn-nav" onclick="openAuth('login')">Login</button>
+    <button class="btn-nav-outline" onclick="openAuth('register')">Register</button>
+</div>
+<!-- Колокольчик уведомлений -->
+<div id="notif-bell" style="display:none; position:relative; cursor:pointer;" onclick="toggleNotifications()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted); transition:color 0.3s;">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+    </svg>
+    <span id="notif-count" style="position:absolute; top:-5px; right:-5px; background:var(--error); color:#fff; font-size:10px; font-weight:800; padding:2px 6px; border-radius:10px; display:none; animation:pulse 2s infinite;">0</span>
+</div>
         </nav>
+
+    <!-- Notification Dropdown -->
+<div class="notif-dropdown" id="notif-dropdown">
+    <div class="notif-header">
+        <span>🔔 Notifications</span>
+        <span style="font-size:12px; color:var(--text-dim); cursor:pointer;" onclick="markAllRead()">Mark all read</span>
+    </div>
+    <div class="notif-list" id="notif-list">
+        <div class="notif-empty">No notifications</div>
+    </div>
+</div>
     </header>
 
     <main>
@@ -542,7 +665,7 @@
                 <div class="changelog-title">📋 Changelog</div>
                 <div class="changelog-item">
                     <div class="changelog-header">
-                        <span class="version-badge">v0.2</span>
+                        <span class="version-badge">v2.0</span>
                         <span class="version-date">02.05.2026</span>
                     </div>
                     <div class="changelog-desc">
@@ -1263,6 +1386,7 @@ async function handleAuth() {
 function updateUserMenu() {
     const menu = document.getElementById('user-menu');
     const navAdmin = document.getElementById('nav-admin');
+    const notifBell = document.getElementById('notif-bell');
     const isAdmin = currentUser && currentUser.isAdmin;
 
     if (isAdmin) {
@@ -1279,12 +1403,117 @@ function updateUserMenu() {
             <span style="color:var(--text-muted);font-size:14px;font-weight:600;">${name}</span>
             <button class="btn-nav-outline" onclick="logout()">Logout</button>
         `;
+        // Показываем колокольчик
+        if (notifBell) notifBell.style.display = 'block';
+        // Загружаем уведомления
+        loadNotifications();
     } else {
         menu.innerHTML = `
             <button class="btn-nav" onclick="openAuth('login')">Login</button>
             <button class="btn-nav-outline" onclick="openAuth('register')">Register</button>
         `;
+        if (notifBell) {
+            notifBell.style.display = 'none';
+            document.getElementById('notif-dropdown')?.classList.remove('active');
+        }
     }
+}
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+
+async function loadNotifications() {
+    if (!currentUser || !supabase) return;
+    
+    try {
+        const { data: notifs, error } = await supabase
+            .from('notifications')
+            .select('*')
+            .eq('player_id', currentUser.id)
+            .eq('is_read', false)
+            .order('created_at', { ascending: false })
+            .limit(20);
+        
+        if (error) throw error;
+        
+        const count = notifs?.length || 0;
+        const countEl = document.getElementById('notif-count');
+        const bell = document.getElementById('notif-bell');
+        
+        if (countEl) {
+            countEl.innerText = count > 9 ? '9+' : count;
+            countEl.style.display = count > 0 ? 'block' : 'none';
+        }
+        
+        if (bell) {
+            bell.classList.toggle('has-unread', count > 0);
+        }
+        
+        renderNotificationsList(notifs || []);
+        
+    } catch (err) {
+        console.error('Error loading notifications:', err);
+    }
+}
+
+function renderNotificationsList(notifs) {
+    const list = document.getElementById('notif-list');
+    if (!list) return;
+    
+    if (notifs.length === 0) {
+        list.innerHTML = '<div class="notif-empty">No new notifications</div>';
+        return;
+    }
+    
+    list.innerHTML = notifs.map(n => `
+        <div class="notif-item ${n.is_read ? 'read' : 'unread'}" onclick="handleNotifClick('${n.id}', '${n.record_id}')">
+            <div class="notif-icon">${n.type === 'record_approved' ? '✅' : '❌'}</div>
+            <div class="notif-content">
+                <div class="notif-text">${n.message}</div>
+                <div class="notif-time">${new Date(n.created_at).toLocaleDateString()}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function toggleNotifications() {
+    const dropdown = document.getElementById('notif-dropdown');
+    dropdown.classList.toggle('active');
+    
+    // Если открыли — помечаем прочитанными
+    if (dropdown.classList.contains('active')) {
+        markAllRead();
+    }
+}
+
+async function markAllRead() {
+    if (!currentUser || !supabase) return;
+    
+    try {
+        await supabase
+            .from('notifications')
+            .update({ is_read: true })
+            .eq('player_id', currentUser.id)
+            .eq('is_read', false);
+        
+        const countEl = document.getElementById('notif-count');
+        const bell = document.getElementById('notif-bell');
+        if (countEl) countEl.style.display = 'none';
+        if (bell) bell.classList.remove('has-unread');
+        
+        renderNotificationsList([]);
+        
+    } catch (err) {
+        console.error('Error marking read:', err);
+    }
+}
+
+function handleNotifClick(notifId, recordId) {
+    // Закрываем дропдаун
+    document.getElementById('notif-dropdown')?.classList.remove('active');
+    // Переходим к рекорду или профилю
+    navigateTo('submit'); // или можно открыть модалку рекорда
 }
 
 function logout() {
@@ -1305,23 +1534,22 @@ if (storedUser) {
 // ============================================
 // PROFILE MODAL
 // ============================================
-function openProfileModal() {
-    if (!currentUser) return;
+function openProfileModal(targetUsername = null) {
+    const username = targetUsername || (currentUser ? currentUser.username : null);
+    if (!username) return;
     
-    // Если данные ещё не загружены — ждём
-    if (!playerData[currentUser.username]) {
-        console.log('Player data not loaded yet, reloading...');
-        loadPlayers().then(() => {
-            openProfileModal();
-        });
+    // Если данные ещё не загружены
+    if (!playerData[username]) {
+        loadPlayers().then(() => openProfileModal(username));
         return;
     }
     
-    const player = playerData[currentUser.username];
+    const player = playerData[username];
+    const isOwnProfile = currentUser && currentUser.username === username;
     
     // Calculate global rank
     const sortedPlayers = Object.values(playerData).sort((a, b) => b.totalScore - a.totalScore);
-    const globalRank = sortedPlayers.findIndex(p => p.name === currentUser.username) + 1;
+    const globalRank = sortedPlayers.findIndex(p => p.name === username) + 1;
     
     document.getElementById('profile-avatar-letter').innerText = player.name.charAt(0).toUpperCase();
     document.getElementById('profile-name').innerText = player.name;
@@ -1334,16 +1562,8 @@ function openProfileModal() {
     document.getElementById('profile-hardest-rank').innerText = player.bestRank ? `Rank #${player.bestRank}` : '';
     document.getElementById('profile-completed-count').innerText = player.count;
     
-    const grid = document.getElementById('profile-levels-grid');
-    if (player.levels && player.levels.length > 0) {
-        grid.innerHTML = player.levels.map(l => `
-            <div class="lb-level-tag" onclick="openLevelByName('${l.name.replace(/'/g, "\\'")}'); closeProfileModal();">
-                <span class="tag-rank">#${l.rank}</span>${l.name}
-            </div>
-        `).join('');
-    } else {
-        grid.innerHTML = '<div style="color: var(--text-dim); font-size: 14px;">Нет пройденных уровней</div>';
-    }
+    // Загружаем рекорды игрока (все — approved, pending, rejected)
+    loadPlayerRecordsForProfile(player.id, isOwnProfile);
     
     document.getElementById('profile-hardest').onclick = () => {
         if (player.hardestName && player.hardestName !== '—') {
@@ -1354,6 +1574,58 @@ function openProfileModal() {
     
     document.getElementById('profile-modal').classList.add('active');
     document.body.style.overflow = 'hidden';
+}
+
+async function loadPlayerRecordsForProfile(playerId, isOwnProfile) {
+    const grid = document.getElementById('profile-levels-grid');
+    if (!grid) return;
+    
+    grid.innerHTML = '<div style="color: var(--text-dim); font-size: 14px;">Loading records...</div>';
+    
+    try {
+        const { data: records, error } = await supabase
+            .from('records')
+            .select(`
+                id,
+                level_id,
+                video_url,
+                status,
+                submitted_at,
+                levels:level_id (id, name, rank, points, category)
+            `)
+            .eq('player_id', playerId)
+            .order('submitted_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        if (!records || records.length === 0) {
+            grid.innerHTML = '<div style="color: var(--text-dim); font-size: 14px;">Нет отправленных рекордов</div>';
+            return;
+        }
+        
+        // Показываем все рекорды (включая pending/rejected для своего профиля)
+        const displayRecords = isOwnProfile ? records : records.filter(r => r.status === 'approved');
+        
+        grid.innerHTML = displayRecords.map(r => {
+            const statusColor = r.status === 'approved' ? 'var(--success)' : 
+                               r.status === 'rejected' ? 'var(--error)' : 'var(--warning)';
+            const statusText = r.status === 'approved' ? '✓' : 
+                              r.status === 'rejected' ? '✕' : '⏳';
+            
+            return `
+                <div class="lb-level-tag" style="border-color: ${statusColor}; position: relative;" 
+                     onclick="${r.status === 'approved' ? `openLevelByName('${r.levels.name.replace(/'/g, "\\'")}'); closeProfileModal();` : ''}"
+                     title="Status: ${r.status}">
+                    <span style="color: ${statusColor}; font-weight: 800; margin-right: 4px;">${statusText}</span>
+                    <span class="tag-rank">#${r.levels.rank}</span>${r.levels.name}
+                    ${r.video_url ? `<a href="${r.video_url}" target="_blank" style="margin-left: 6px; color: var(--accent-2);">🎬</a>` : ''}
+                </div>
+            `;
+        }).join('');
+        
+    } catch (err) {
+        grid.innerHTML = `<div style="color: var(--error); font-size: 14px;">Error: ${err.message}</div>`;
+    }
 }
 
 function closeProfileModal() {
@@ -1577,9 +1849,9 @@ async function renderLevelRecords(levelId) {
     try {
         const { data: records, error } = await supabase
             .from('records')
-            .select('id, player_id, video_url, notes, submitted_at, status')
+            .select('id, player_id, video_url, status, submitted_at')
             .eq('level_id', levelId)
-            .eq('status', 'approved')
+            .eq('status', 'approved') // Только approved!
             .order('submitted_at', { ascending: true });
         
         if (error) throw error;
@@ -1599,16 +1871,21 @@ async function renderLevelRecords(levelId) {
         const playerMap = {};
         if (players) players.forEach(p => playerMap[p.id] = p.username);
         
-        container.innerHTML = records.map((r, i) => `
-            <div class="record-item">
-                <span class="record-rank">#${i + 1}</span>
-                <span class="record-player">${playerMap[r.player_id] || 'Unknown'}</span>
-                ${r.video_url && r.video_url !== 'https://t.me/CHALLENGE_GRIND' 
-                    ? `<a href="${r.video_url}" target="_blank" class="record-video">🎬 Видео</a>` 
-                    : ''}
-                <span class="record-status status-approved">Approved</span>
-            </div>
-        `).join('');
+        container.innerHTML = records.map((r, i) => {
+            // Если видео — заглушка, показываем как "TG Channel"
+            const isPlaceholder = r.video_url === 'https://t.me/CHALLENGE_GRIND' || r.video_url === 'https://t.me/challenge_grind';
+            const videoLabel = isPlaceholder ? '📱 TG Channel' : '🎬 Видео';
+            const videoUrl = isPlaceholder ? 'https://t.me/CHALLENGE_GRIND' : r.video_url;
+            
+            return `
+                <div class="record-item">
+                    <span class="record-rank">#${i + 1}</span>
+                    <span class="record-player">${playerMap[r.player_id] || 'Unknown'}</span>
+                    <a href="${videoUrl}" target="_blank" class="record-video">${videoLabel}</a>
+                    <span class="record-status status-approved">Approved</span>
+                </div>
+            `;
+        }).join('');
         
     } catch (err) {
         console.error('Error loading records:', err);
@@ -1667,7 +1944,12 @@ function selectPlayer(playerName, allPlayers) {
 
     const panel = document.getElementById('lb-info-panel');
     panel.innerHTML = `
-        <div class="lb-profile-header">
+        <div class="lb-profile-header" style="position: relative;">
+            <div style="position: absolute; top: 0; right: 0;">
+                <button class="btn-nav" onclick="openProfileModal('${player.name}')" style="padding: 8px 16px; font-size: 12px;">
+                    👤 Full Profile
+                </button>
+            </div>
             <div class="lb-profile-avatar">${initial}</div>
             <div class="lb-profile-name">${player.name}</div>
             <div class="lb-profile-rank">#${rank} in global ranking</div>
@@ -1899,6 +2181,7 @@ async function loadAdminRecords() {
                             ${record.status !== 'approved' ? `<button class="btn-icon approve" onclick="updateRecordStatus('${record.id}', 'approved')" title="Approve">✓</button>` : ''}
                             ${record.status !== 'rejected' ? `<button class="btn-icon reject" onclick="updateRecordStatus('${record.id}', 'rejected')" title="Reject">✕</button>` : ''}
                             <button class="btn-icon delete" onclick="deleteRecord('${record.id}')" title="Delete">🗑</button>
+                            <button class="btn-icon edit" onclick="editRecordUrl('${record.id}')" title="Edit URL">🔗</button>
                         </div>
                     </td>
                 </tr>
@@ -1913,6 +2196,49 @@ async function loadAdminRecords() {
     }
 }
 
+async function deletePlayer(playerId, username) {
+    if (!confirm(`DELETE player ${username}? This will delete ALL their records and completions!`)) return;
+    
+    try {
+        // Удаляем игрока (каскадно удалит records, completions, notifications, passwords)
+        const { error } = await supabase
+            .from('players')
+            .delete()
+            .eq('id', playerId);
+        
+        if (error) throw error;
+        
+        // Удаляем из локального кэша
+        delete playerData[username];
+        allPlayersCache = allPlayersCache.filter(p => p.id !== playerId);
+        
+        alert(`Player ${username} deleted!`);
+        renderPlayersList(allPlayersCache);
+        
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+async function editRecordUrl(recordId) {
+    const newUrl = prompt('Enter new video URL:');
+    if (!newUrl) return;
+    
+    try {
+        const { error } = await supabase
+            .from('records')
+            .update({ video_url: newUrl })
+            .eq('id', recordId);
+        
+        if (error) throw error;
+        loadAdminRecords();
+        alert('URL updated!');
+        
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
 async function updateRecordStatus(recordId, status) {
     try {
         const { error } = await supabase
@@ -1923,9 +2249,20 @@ async function updateRecordStatus(recordId, status) {
                 reviewed_by: currentUser.id
             })
             .eq('id', recordId);
+        
         if (error) throw error;
+        
+        // Триггер в БД автоматически:
+        // 1. Добавит/удалит из player_completions
+        // 2. Создаст уведомление
+        // 3. Пересчитает очки игрока
+        
+        // Перезагружаем данные
         await loadPlayers();
         loadAdminRecords();
+        
+        alert(`Record ${status}!`);
+        
     } catch (err) {
         alert('Error: ' + err.message);
     }
@@ -2095,7 +2432,6 @@ function closeLevelEdit() {
 }
 
 async function saveLevel() {
-    // Собираем данные
     const baseData = {
         name: document.getElementById('edit-name').value.trim(),
         publisher: document.getElementById('edit-pub').value.trim(),
@@ -2123,8 +2459,9 @@ async function saveLevel() {
                 .update({ ...baseData, rank })
                 .eq('id', editingLevelId);
             if (error) throw error;
+            
         } else {
-            // НОВЫЙ УРОВЕНЬ — со сдвигом через RPC
+            // НОВЫЙ УРОВЕНЬ — пересчёт рангов в клиенте (без RPC!)
             const manualRank = parseInt(document.getElementById('edit-rank').value);
             const aboveRank  = parseInt(document.getElementById('edit-above-rank').value);
             const belowRank  = parseInt(document.getElementById('edit-below-rank').value);
@@ -2134,7 +2471,7 @@ async function saveLevel() {
             // Если указаны границы — считаем автоматически
             if (!isNaN(aboveRank) && !isNaN(belowRank)) {
                 if (belowRank - aboveRank !== 2) {
-                    alert('Между "выше" и "ниже" должна быть ровно 1 свободная позиция. Пример: выше 28, ниже 30 → ранг 29');
+                    alert('Между "выше" и "ниже" должна быть ровно 1 свободная позиция. Пример: выше 1, ниже 3 → ранг 2');
                     return;
                 }
                 targetRank = aboveRank + 1;
@@ -2143,20 +2480,56 @@ async function saveLevel() {
                 return;
             }
             
-            const { data, error } = await supabase.rpc('insert_level_with_shift', {
-                p_rank: targetRank,
-                p_name: baseData.name,
-                p_publisher: baseData.publisher,
-                p_verifier: baseData.verifier,
-                p_level_id: baseData.level_id,
-                p_image: baseData.image,
-                p_video: baseData.video,
-                p_category: baseData.category,
-                p_first_victor: baseData.first_victor
-            });
+            // === ПЕРЕСЧЁТ РАНГОВ В КЛИЕНТЕ (без RPC) ===
+            const category = baseData.category;
             
-            if (error) throw error;
-            console.log('Level inserted:', data);
+            // 1. Получаем все уровни этой категории
+            const { data: existingLevels, error: fetchError } = await supabase
+                .from('levels')
+                .select('id, rank')
+                .eq('category', category)
+                .order('rank', { ascending: true });
+            
+            if (fetchError) throw fetchError;
+            
+            // 2. Проверяем конфликт рангов
+            const conflict = existingLevels.find(l => l.rank === targetRank);
+            
+            if (conflict) {
+                // Нужно сдвинуть уровни с >= targetRank на +1
+                // Делаем двухфазно (как в SQL) через временные значения
+                
+                // Фаза 1: +10000 всем кто >= targetRank
+                const toShift = existingLevels.filter(l => l.rank >= targetRank);
+                
+                for (const level of toShift) {
+                    const { error } = await supabase
+                        .from('levels')
+                        .update({ rank: level.rank + 10000 })
+                        .eq('id', level.id);
+                    if (error) throw error;
+                }
+                
+                // Фаза 2: -9999 (получаем +1 от оригинала)
+                for (const level of toShift) {
+                    const { error } = await supabase
+                        .from('levels')
+                        .update({ rank: level.rank + 1 }) // было +10000, станет +1
+                        .eq('id', level.id);
+                    if (error) throw error;
+                }
+            }
+            
+            // 3. Вставляем новый уровень
+            const { data: newLevel, error: insertError } = await supabase
+                .from('levels')
+                .insert([{ ...baseData, rank: targetRank }])
+                .select()
+                .single();
+            
+            if (insertError) throw insertError;
+            
+            console.log('Level inserted:', newLevel);
         }
         
         await loadLevels();
@@ -2168,8 +2541,10 @@ async function saveLevel() {
             renderLevels(currentData, currentCategory);
         }
         alert('Level saved!');
+        
     } catch (err) {
         alert('Error: ' + err.message);
+        console.error('saveLevel error:', err);
     }
 }
 
