@@ -2739,145 +2739,107 @@ async function saveLevel() {
         return;
     }
 
-    // Проверка verifier ≠ first_victor
     if (baseData.first_victor && baseData.verifier === baseData.first_victor) {
         alert('Error: Verifier cannot be the same as First Victor!');
         return;
     }
 
     try {
-        // Определяем целевой ранг
         let targetRank;
+        const manualRank = parseInt(document.getElementById('edit-rank').value);
+        const aboveRank = parseInt(document.getElementById('edit-above-rank').value);
+        const belowRank = parseInt(document.getElementById('edit-below-rank').value);
         
-        if (editingLevelId) {
-            // РЕДАКТИРОВАНИЕ
-            const manualRank = parseInt(document.getElementById('edit-rank').value);
-            const aboveRank = parseInt(document.getElementById('edit-above-rank').value);
-            const belowRank = parseInt(document.getElementById('edit-below-rank').value);
-            
-            // Приоритет: авто-вставка > ручной ранг
-            if (!isNaN(aboveRank) && !isNaN(belowRank)) {
-                if (belowRank - aboveRank !== 2) {
-                    alert('Между "выше" и "ниже" должна быть ровно 1 свободная позиция');
-                    return;
-                }
-                targetRank = aboveRank + 1;
-            } else if (!isNaN(manualRank)) {
-                targetRank = manualRank;
-            } else {
-                alert('Укажите ранг вручную или заполните поля "выше/ниже топа"');
+        // Приоритет: авто-вставка > ручной ранг
+        if (!isNaN(aboveRank) && !isNaN(belowRank)) {
+            // Выше = меньший ранг, Ниже = больший ранг
+            // Пример: выше 1, ниже 3 → ранг 2
+            if (aboveRank >= belowRank) {
+                alert('"Выше топа" должен быть МЕНЬШЕ чем "Ниже топа"\nПример: Выше 1, Ниже 3 → Ранг 2');
                 return;
             }
-            
-            const category = baseData.category;
-            
-            // Получаем ВСЕ уровни категории, КРОМЕ текущего
-            const { data: existingLevels, error: fetchError } = await supabase
+            if (belowRank - aboveRank < 2) {
+                alert('Между "выше" и "ниже" должно быть минимум 1 свободное место');
+                return;
+            }
+            targetRank = aboveRank + 1;
+            // Проверяем что targetRank действительно между ними
+            if (targetRank >= belowRank) {
+                alert('Некорректные значения. Пример: Выше 1, Ниже 3 → Ранг 2');
+                return;
+            }
+        } else if (!isNaN(manualRank)) {
+            targetRank = manualRank;
+        } else {
+            alert('Укажите ранг вручную или заполните поля "выше/ниже топа"');
+            return;
+        }
+
+        const category = baseData.category;
+        
+        // Получаем уровни для сдвига
+        let existingLevels;
+        if (editingLevelId) {
+            const { data, error } = await supabase
                 .from('levels')
                 .select('id, rank')
                 .eq('category', category)
-                .neq('id', editingLevelId) // ИСКЛЮЧАЕМ текущий уровень!
+                .neq('id', editingLevelId)
                 .order('rank', { ascending: true });
+            if (error) throw error;
+            existingLevels = data || [];
+        } else {
+            const { data, error } = await supabase
+                .from('levels')
+                .select('id, rank')
+                .eq('category', category)
+                .order('rank', { ascending: true });
+            if (error) throw error;
+            existingLevels = data || [];
+        }
+
+        // Проверяем конфликт
+        const conflict = existingLevels.find(l => l.rank === targetRank);
+
+        if (conflict) {
+            // Сдвигаем: все уровни с rank >= targetRank на +1
+            const toShift = existingLevels.filter(l => l.rank >= targetRank);
             
-            if (fetchError) throw fetchError;
-            
-            // Проверяем конфликт с ДРУГИМИ уровнями
-            const conflict = existingLevels.find(l => l.rank === targetRank);
-            
-            if (conflict) {
-                // Сдвигаем уровни с >= targetRank на +1
-                // Фаза 1: во временные отрицательные значения
-                const toShift = existingLevels.filter(l => l.rank >= targetRank);
-                
-                for (const level of toShift) {
-                    const tempRank = -(level.rank + 100000);
-                    const { error } = await supabase
-                        .from('levels')
-                        .update({ rank: tempRank })
-                        .eq('id', level.id);
-                    if (error) throw error;
-                }
-                
-                // Фаза 2: в финальные значения (+1)
-                for (const level of toShift) {
-                    const newRank = Math.abs(level.rank) - 100000 + 1;
-                    const { error } = await supabase
-                        .from('levels')
-                        .update({ rank: newRank })
-                        .eq('id', level.id);
-                    if (error) throw error;
-                }
+            // Фаза 1: временные отрицательные значения
+            for (const level of toShift) {
+                const tempRank = -(level.rank + 100000);
+                const { error } = await supabase
+                    .from('levels')
+                    .update({ rank: tempRank })
+                    .eq('id', level.id);
+                if (error) throw error;
             }
             
-            // Обновляем текущий уровень
+            // Фаза 2: финальные значения
+            for (const level of toShift) {
+                const newRank = Math.abs(level.rank) - 100000 + 1;
+                const { error } = await supabase
+                    .from('levels')
+                    .update({ rank: newRank })
+                    .eq('id', level.id);
+                if (error) throw error;
+            }
+        }
+
+        // Сохраняем уровень
+        if (editingLevelId) {
             const { error } = await supabase
                 .from('levels')
                 .update({ ...baseData, rank: targetRank })
                 .eq('id', editingLevelId);
             if (error) throw error;
-            
         } else {
-            // НОВЫЙ УРОВЕНЬ (код без изменений)
-            const manualRank = parseInt(document.getElementById('edit-rank').value);
-            const aboveRank = parseInt(document.getElementById('edit-above-rank').value);
-            const belowRank = parseInt(document.getElementById('edit-below-rank').value);
-            
-            if (!isNaN(aboveRank) && !isNaN(belowRank)) {
-                if (belowRank - aboveRank !== 2) {
-                    alert('Между "выше" и "ниже" должна быть ровно 1 свободная позиция');
-                    return;
-                }
-                targetRank = aboveRank + 1;
-            } else if (!isNaN(manualRank)) {
-                targetRank = manualRank;
-            } else {
-                alert('Укажите ранг вручную или заполните поля "выше/ниже топа"');
-                return;
-            }
-            
-            const category = baseData.category;
-            
-            const { data: existingLevels, error: fetchError } = await supabase
+            const { error } = await supabase
                 .from('levels')
-                .select('id, rank')
-                .eq('category', category)
-                .order('rank', { ascending: true });
-            
-            if (fetchError) throw fetchError;
-            
-            const conflict = existingLevels.find(l => l.rank === targetRank);
-            
-            if (conflict) {
-                const toShift = existingLevels.filter(l => l.rank >= targetRank);
-                
-                for (const level of toShift) {
-                    const tempRank = -(level.rank + 100000);
-                    const { error } = await supabase
-                        .from('levels')
-                        .update({ rank: tempRank })
-                        .eq('id', level.id);
-                    if (error) throw error;
-                }
-                
-                for (const level of toShift) {
-                    const newRank = Math.abs(level.rank) - 100000 + 1;
-                    const { error } = await supabase
-                        .from('levels')
-                        .update({ rank: newRank })
-                        .eq('id', level.id);
-                    if (error) throw error;
-                }
-            }
-            
-            const { data: newLevel, error: insertError } = await supabase
-                .from('levels')
-                .insert([{ ...baseData, rank: targetRank }])
-                .select()
-                .single();
-            
-            if (insertError) throw insertError;
+                .insert([{ ...baseData, rank: targetRank }]);
+            if (error) throw error;
         }
-        
+
         await loadLevels();
         await loadPlayers();
         closeLevelEdit();
@@ -2887,7 +2849,7 @@ async function saveLevel() {
             renderLevels(currentData, currentCategory);
         }
         alert('Level saved!');
-        
+
     } catch (err) {
         alert('Error: ' + err.message);
         console.error('saveLevel error:', err);
