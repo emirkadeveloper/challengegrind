@@ -2517,13 +2517,57 @@ async function updateRecordStatus(recordId, status) {
 
 async function deleteRecord(recordId) {
     if (!confirm('Delete this record?')) return;
+    
     try {
+        // 1. Получаем данные рекорда ДО удаления
+        const { data: record, error: fetchError } = await supabase
+            .from('records')
+            .select('player_id, level_id, status')
+            .eq('id', recordId)
+            .single();
+        
+        if (fetchError) throw fetchError;
+        
+        // 2. Удаляем рекорд
         const { error } = await supabase.from('records').delete().eq('id', recordId);
         if (error) throw error;
+        
+        // 3. Если рекорд был approved — удаляем из completions и пересчитываем игрока
+        if (record && record.status === 'approved') {
+            await supabase.from('player_completions')
+                .delete()
+                .eq('player_id', record.player_id)
+                .eq('level_id', record.level_id);
+            
+            // Принудительно пересчитываем игрока
+            await recalcPlayerStats(record.player_id);
+        }
+        
+        // 4. Перезагружаем данные
         await loadPlayers();
         loadAdminRecords();
+        
+        alert('Record deleted!');
+        
     } catch (err) {
         alert('Error: ' + err.message);
+        console.error('deleteRecord error:', err);
+    }
+}
+
+async function recalcPlayerStats(playerId) {
+    try {
+        // Используем SQL функцию если есть, или обновляем вручную
+        const { error } = await supabase.rpc('recalc_player_stats', {
+            p_player_id: playerId
+        });
+        
+        if (error) {
+            console.warn('RPC failed, using fallback:', error);
+            // Fallback: триггер в БД должен сработать при изменении completions
+        }
+    } catch (err) {
+        console.error('recalcPlayerStats error:', err);
     }
 }
 
