@@ -652,35 +652,48 @@
     </header>
 
     <main>
-        <!-- HOME -->
-        <section id="home-view">
-            <h1 class="hero-title">Challenge Grind</h1>
-            <p class="hero-subtitle">Челлендж лист телеграм канала Challenge Grind. Докажи свой скилл, отправляй рекорды и поднимайся в таблице лидеров!</p>
-            <div class="hero-actions">
-                <button class="btn-primary" onclick="navigateTo('lists')">Открыть Листы</button>
-                <button class="btn-secondary" onclick="navigateTo('leaderboard')">Таблица Лидеров</button>
-                <button class="btn-secondary" onclick="navigateTo('submit')">Отправить Рекорд</button>
+<!-- HOME -->
+<section id="home-view">
+    <h1 class="hero-title">Challenge Grind</h1>
+    <p class="hero-subtitle">Челлендж лист телеграм канала Challenge Grind. Докажи свой скилл, отправляй рекорды и поднимайся в таблице лидеров!</p>
+    <div class="hero-actions">
+        <button class="btn-primary" onclick="navigateTo('lists')">Открыть Листы</button>
+        <button class="btn-secondary" onclick="navigateTo('leaderboard')">Таблица Лидеров</button>
+        <button class="btn-secondary" onclick="navigateTo('submit')">Отправить Рекорд</button>
+    </div>
+    <div class="changelog-container">
+        <div class="changelog-title">📋 Changelog</div>
+
+        <!-- Новое обновление -->
+        <div class="changelog-item">
+            <div class="changelog-header">
+                <span class="version-badge">v0.3</span>
+                <span class="version-date">03.05.2026</span>
             </div>
-            <div class="changelog-container">
-                <div class="changelog-title">📋 Changelog</div>
-                <div class="changelog-item">
-                    <div class="changelog-header">
-                        <span class="version-badge">v2.0</span>
-                        <span class="version-date">02.05.2026</span>
-                    </div>
-                    <div class="changelog-desc">
-                        Добавлен лидерборд, обновлены лидерборды, добавлена функция для подачи рекорда, пендинги, профиль
-                    </div>
-                </div>
-                <div class="changelog-item">
-                    <div class="changelog-header">
-                        <span class="version-badge">v0.1-alpha</span>
-                        <span class="version-date">16.03.2026</span>
-                    </div>
-                    <div class="changelog-desc">Сайт официально открыт!</div>
-                </div>
+            <div class="changelog-desc">
+                Добавлены уведомления, исправлены ошибки и недочёты, появилась возможность смотреть полный профиль других игроков и видео рекордов.
             </div>
-        </section>
+        </div>
+
+        <div class="changelog-item">
+            <div class="changelog-header">
+                <span class="version-badge">v0.2</span>
+                <span class="version-date">02.05.2026</span>
+            </div>
+            <div class="changelog-desc">
+                Добавлен лидерборд, обновлен лист, добавлена функция для подачи рекорда, пендинги, профиль и многое другое.
+            </div>
+        </div>
+
+        <div class="changelog-item">
+            <div class="changelog-header">
+                <span class="version-badge">v0.1-alpha</span>
+                <span class="version-date">16.03.2026</span>
+            </div>
+            <div class="changelog-desc">Сайт официально открыт!</div>
+        </div>
+    </div>
+</section>
 
         <!-- LISTS -->
         <section id="lists-view">
