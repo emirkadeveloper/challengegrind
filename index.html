@@ -135,6 +135,18 @@
         }
         .btn-nav-red:hover { background: var(--error); color: #fff; }
 
+        #admin-search-tab .search-bar {
+    margin-bottom: 0;
+}
+
+#search-results .admin-table {
+    font-size: 13px;
+}
+
+#search-results .admin-table td {
+    padding: 10px 12px;
+}
+
         main { max-width: 1200px; margin: 40px auto; padding: 0 20px; position: relative; z-index: 2; }
         .page-title { font-size: 38px; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px; }
         .contributor-text { color: var(--text-muted); font-size: 15px; font-weight: 500; margin-bottom: 20px; }
@@ -767,10 +779,11 @@
                 <span>⚠️</span> Local Mode — данные сохраняются в браузере
             </div>
             <div class="admin-tabs">
-                <button class="admin-tab active" onclick="switchAdminTab('records')" id="tab-records">📋 Records</button>
-                <button class="admin-tab" onclick="switchAdminTab('levels')" id="tab-levels">🎮 Levels</button>
-                <button class="admin-tab" onclick="switchAdminTab('players')" id="tab-players">👤 Player Records</button>
-            </div>
+    <button class="admin-tab active" onclick="switchAdminTab('records')" id="tab-records">📋 Records</button>
+    <button class="admin-tab" onclick="switchAdminTab('levels')" id="tab-levels">🎮 Levels</button>
+    <button class="admin-tab" onclick="switchAdminTab('players')" id="tab-players">👤 Players</button>
+    <button class="admin-tab" onclick="switchAdminTab('search')" id="tab-search">🔍 Search Records</button>
+</div>
 
             <!-- Records Tab -->
             <div id="admin-records-tab" class="admin-panel">
@@ -807,6 +820,32 @@
     </div>
     <div id="admin-players-list">
         <div class="admin-empty">Click "Load All" to see all players, or search by username</div>
+    </div>
+</div>
+<!-- Search Records Tab -->
+<div id="admin-search-tab" class="admin-panel" style="display:none;">
+    <div class="admin-section-title">
+        <span>🔍 Search Records & Completions</span>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+        <div>
+            <div class="form-label">Search by Player</div>
+            <input type="text" class="search-bar" id="search-player-input" placeholder="Username..." oninput="searchByPlayer(this.value)" style="width: 100%; margin-bottom: 0;">
+        </div>
+        <div>
+            <div class="form-label">Search by Level</div>
+            <input type="text" class="search-bar" id="search-level-input" placeholder="Level name..." oninput="searchByLevel(this.value)" style="width: 100%; margin-bottom: 0;">
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+        <button class="btn-nav" onclick="loadAllRecords()" style="padding: 8px 16px; font-size: 12px;">🔄 Load All Records</button>
+        <button class="btn-nav-outline" onclick="clearSearch()" style="padding: 8px 16px; font-size: 12px;">Clear</button>
+    </div>
+    
+    <div id="search-results">
+        <div class="admin-empty">Enter player name or level name to search</div>
     </div>
 </div>
         </section>
@@ -2135,11 +2174,206 @@ function switchAdminTab(tab) {
     document.getElementById('admin-records-tab').style.display = tab === 'records' ? 'block' : 'none';
     document.getElementById('admin-levels-tab').style.display = tab === 'levels' ? 'block' : 'none';
     document.getElementById('admin-players-tab').style.display = tab === 'players' ? 'block' : 'none';
+    document.getElementById('admin-search-tab').style.display = tab === 'search' ? 'block' : 'none';
 
-    // Загружаем данные для активной вкладки
     if (tab === 'records') loadAdminRecords();
     else if (tab === 'levels') loadAdminLevels();
     else if (tab === 'players') loadAdminPlayers();
+    else if (tab === 'search') loadSearchTab();
+}
+
+// ============================================
+// SEARCH RECORDS TAB
+// ============================================
+
+function loadSearchTab() {
+    const container = document.getElementById('search-results');
+    if (!container.innerHTML.includes('record-item')) {
+        container.innerHTML = '<div class="admin-empty">Enter player name or level name to search</div>';
+    }
+}
+
+function clearSearch() {
+    document.getElementById('search-player-input').value = '';
+    document.getElementById('search-level-input').value = '';
+    document.getElementById('search-results').innerHTML = '<div class="admin-empty">Search cleared</div>';
+}
+
+async function loadAllRecords() {
+    const container = document.getElementById('search-results');
+    container.innerHTML = '<div class="admin-empty">Loading all records...</div>';
+    
+    try {
+        const { data: records, error } = await supabase
+            .from('records')
+            .select(`
+                id,
+                video_url,
+                notes,
+                status,
+                submitted_at,
+                reviewed_at,
+                players:player_id (id, username),
+                levels:level_id (id, name, rank, category)
+            `)
+            .order('submitted_at', { ascending: false })
+            .limit(100);
+        
+        if (error) throw error;
+        renderSearchResults(records || [], 'All Records (last 100)');
+        
+    } catch (err) {
+        container.innerHTML = `<div class="admin-empty" style="color: var(--error);">Error: ${err.message}</div>`;
+    }
+}
+
+async function searchByPlayer(query) {
+    if (!query.trim()) return;
+    
+    const container = document.getElementById('search-results');
+    container.innerHTML = '<div class="admin-empty">Searching...</div>';
+    
+    try {
+        // Ищем игрока
+        const { data: players } = await supabase
+            .from('players')
+            .select('id, username')
+            .ilike('username', '%' + query.trim() + '%')
+            .limit(5);
+        
+        if (!players || players.length === 0) {
+            container.innerHTML = '<div class="admin-empty">No players found</div>';
+            return;
+        }
+        
+        const playerIds = players.map(p => p.id);
+        
+        // Ищем рекорды этих игроков
+        const { data: records, error } = await supabase
+            .from('records')
+            .select(`
+                id,
+                video_url,
+                notes,
+                status,
+                submitted_at,
+                reviewed_at,
+                players:player_id (id, username),
+                levels:level_id (id, name, rank, category)
+            `)
+            .in('player_id', playerIds)
+            .order('submitted_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        renderSearchResults(records || [], `Records for player: "${query.trim()}"`);
+        
+    } catch (err) {
+        container.innerHTML = `<div class="admin-empty" style="color: var(--error);">Error: ${err.message}</div>`;
+    }
+}
+
+async function searchByLevel(query) {
+    if (!query.trim()) return;
+    
+    const container = document.getElementById('search-results');
+    container.innerHTML = '<div class="admin-empty">Searching...</div>';
+    
+    try {
+        // Ищем уровни
+        const { data: levels } = await supabase
+            .from('levels')
+            .select('id, name, rank')
+            .ilike('name', '%' + query.trim() + '%')
+            .limit(10);
+        
+        if (!levels || levels.length === 0) {
+            container.innerHTML = '<div class="admin-empty">No levels found</div>';
+            return;
+        }
+        
+        const levelIds = levels.map(l => l.id);
+        
+        // Ищем рекорды на этих уровнях
+        const { data: records, error } = await supabase
+            .from('records')
+            .select(`
+                id,
+                video_url,
+                notes,
+                status,
+                submitted_at,
+                reviewed_at,
+                players:player_id (id, username),
+                levels:level_id (id, name, rank, category)
+            `)
+            .in('level_id', levelIds)
+            .order('submitted_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        renderSearchResults(records || [], `Records for level: "${query.trim()}"`);
+        
+    } catch (err) {
+        container.innerHTML = `<div class="admin-empty" style="color: var(--error);">Error: ${err.message}</div>`;
+    }
+}
+
+function renderSearchResults(records, title) {
+    const container = document.getElementById('search-results');
+    
+    if (!records || records.length === 0) {
+        container.innerHTML = '<div class="admin-empty">No records found</div>';
+        return;
+    }
+    
+    let html = `<div style="margin-bottom: 15px; font-weight: 700; color: var(--accent-2);">${title} (${records.length})</div>`;
+    
+    html += `<table class="admin-table">
+        <thead>
+            <tr>
+                <th>Player</th>
+                <th>Level</th>
+                <th>Status</th>
+                <th>Video</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>`;
+    
+    records.forEach(r => {
+        const statusClass = r.status === 'approved' ? 'status-approved' : 
+                           r.status === 'rejected' ? 'status-rejected' : 'status-pending';
+        const levelName = r.levels ? `#${r.levels.rank} ${r.levels.name}` : 'Unknown';
+        const playerName = r.players ? r.players.username : 'Unknown';
+        const isPlaceholder = r.video_url && (r.video_url.includes('t.me/CHALLENGE_GRIND') || r.video_url.includes('t.me/challenge_grind'));
+        
+        html += `
+            <tr>
+                <td><strong>${playerName}</strong></td>
+                <td>${levelName}</td>
+                <td><span class="status-badge ${statusClass}">${r.status}</span></td>
+                <td>
+                    ${r.video_url 
+                        ? `<a href="${r.video_url}" target="_blank">${isPlaceholder ? '📱 TG' : '🎬 Video'}</a>` 
+                        : '—'}
+                </td>
+                <td>${new Date(r.submitted_at).toLocaleDateString()}</td>
+                <td>
+                    <div class="admin-actions">
+                        ${r.status !== 'approved' ? `<button class="btn-icon approve" onclick="updateRecordStatus('${r.id}', 'approved')" title="Approve">✓</button>` : ''}
+                        ${r.status !== 'rejected' ? `<button class="btn-icon reject" onclick="updateRecordStatus('${r.id}', 'rejected')" title="Reject">✕</button>` : ''}
+                        <button class="btn-icon edit" onclick="editRecordUrl('${r.id}')" title="Edit URL">🔗</button>
+                        <button class="btn-icon delete" onclick="deleteRecord('${r.id}')" title="Delete">🗑</button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += '</tbody></table>';
+    container.innerHTML = html;
 }
 
 // --- Records Tab ---
