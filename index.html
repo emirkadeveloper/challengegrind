@@ -2688,15 +2688,43 @@ async function openLevelEditById(levelId) {
 
 async function deleteLevel(levelId) {
     if (!confirm('Delete this level? This will also delete all records for this level!')) return;
+    
     try {
+        // Получаем данные уровня ДО удаления (нужен rank и category)
+        const { data: level, error: fetchError } = await supabase
+            .from('levels')
+            .select('id, rank, category, name')
+            .eq('id', levelId)
+            .single();
+        
+        if (fetchError) throw fetchError;
+        
+        // Удаляем уровень
         const { error } = await supabase.from('levels').delete().eq('id', levelId);
         if (error) throw error;
+        
+        // Заполняем дырку: все ниже → вверх на 1
+        if (level && level.rank > 0) {
+            await supabase.rpc('fill_rank_gap', {
+                p_category: level.category,
+                p_removed_rank: level.rank
+            });
+        }
+        
         await loadLevels();
         await loadPlayers();
         loadAdminLevels();
-        alert('Level deleted!');
+        
+        // Обновляем текущий вид если нужно
+        if (document.getElementById('lists-view').style.display !== 'none') {
+            renderLevels(currentData, currentCategory);
+        }
+        
+        alert('Level deleted! Gap filled automatically.');
+        
     } catch (err) {
         alert('Error: ' + err.message);
+        console.error('deleteLevel error:', err);
     }
 }
 
@@ -2767,10 +2795,6 @@ async function saveLevel() {
                 return;
             }
             targetRank = aboveRank + 1;
-            if (targetRank >= belowRank) {
-                alert('Некорректные значения. Пример: Выше 1, Ниже 3 → Ранг 2');
-                return;
-            }
         } else if (!isNaN(manualRank)) {
             targetRank = manualRank;
         } else {
@@ -2780,109 +2804,77 @@ async function saveLevel() {
 
         const category = baseData.category;
         
-        // Получаем ВСЕ уровни этой категории (включая битые ранги)
-        let query = supabase
-            .from('levels')
-            .select('id, rank, name')
-            .eq('category', category);
-        
         if (editingLevelId) {
-            query = query.neq('id', editingLevelId);
-        }
-        
-        const { data: allLevels, error: fetchError } = await query.order('rank', { ascending: true });
-        
-        if (fetchError) throw fetchError;
-        
-        // Разделяем: нормальные ранги и битые (отрицательные или > 100000)
-        const normalLevels = (allLevels || []).filter(l => l.rank > 0 && l.rank < 100000);
-        const brokenLevels = (allLevels || []).filter(l => l.rank < 0 || l.rank >= 100000);
-        
-        console.log('Normal levels:', normalLevels.length, 'Broken levels:', brokenLevels.length);
-        
-        // Сначала исправляем битые ранги (если есть)
-        if (brokenLevels.length > 0) {
-            for (const level of brokenLevels) {
-                const tempRank = 900000 + level.id; // Гарантированно уникальное временное значение
+            // === РЕДАКТИРОВАНИЕ ===
+            
+            // Получаем текущий уровень
+            const { data: currentLevel } = await supabase
+                .from('levels')
+                .select('rank')
+                .eq('id', editingLevelId)
+                .single();
+            
+            const oldRank = currentLevel ? currentLevel.rank : null;
+            
+            if (oldRank && oldRank !== targetRank) {
+                // Меняем ранг — нужно сдвинуть остальных
+                
+                if (targetRank < oldRank) {
+                    // Двигаем ВВЕРХ (например, с 5 на 2)
+                    // Уровни с targetRank по oldRank-1 → сдвигаем вниз на 1
+                    await supabase.rpc('shift_ranks_down', {
+                        p_category: category,
+                        p_target_rank: targetRank
+                    });
+                    
+                    // Обновляем текущий уровень
+                    await supabase.from('levels')
+                        .update({ ...baseData, rank: targetRank })
+                        .eq('id', editingLevelId);
+                        
+                } else {
+                    // Двигаем ВНИЗ (например, с 2 на 5)
+                    // Сначала удаляем старый ранг (заполняем дырку)
+                    await supabase.rpc('fill_rank_gap', {
+                        p_category: category,
+                        p_removed_rank: oldRank
+                    });
+                    
+                    // Теперь сдвигаем для нового ранга
+                    await supabase.rpc('shift_ranks_down', {
+                        p_category: category,
+                        p_target_rank: targetRank
+                    });
+                    
+                    // Обновляем текущий уровень
+                    await supabase.from('levels')
+                        .update({ ...baseData, rank: targetRank })
+                        .eq('id', editingLevelId);
+                }
+                
+            } else {
+                // Ранг не меняется — просто обновляем данные
                 const { error } = await supabase
                     .from('levels')
-                    .update({ rank: tempRank })
-                    .eq('id', level.id);
+                    .update({ ...baseData, rank: targetRank })
+                    .eq('id', editingLevelId);
                 if (error) throw error;
             }
-        }
-        
-        // Проверяем конфликт с нормальными уровнями
-        const conflict = normalLevels.find(l => l.rank === targetRank);
-        
-        if (conflict) {
-            // Сдвигаем уровни с >= targetRank
-            const toShift = normalLevels.filter(l => l.rank >= targetRank).sort((a, b) => b.rank - a.rank); // Сначала большие!
             
-            // Фаза 1: сдвигаем в временную зону (в обратном порядке, чтобы не было конфликтов!)
-            for (const level of toShift) {
-                const tempRank = 800000 + level.id;
-                const { error } = await supabase
-                    .from('levels')
-                    .update({ rank: tempRank })
-                    .eq('id', level.id);
-                if (error) {
-                    console.error('Phase 1 error for level', level.name, error);
-                    throw error;
-                }
-            }
-            
-            // Фаза 2: возвращаем с +1 (в прямом порядке)
-            const shiftedLevels = toShift.sort((a, b) => a.rank - b.rank); // Теперь в прямом порядке
-            for (const level of shiftedLevels) {
-                const newRank = level.rank + 1;
-                const { error } = await supabase
-                    .from('levels')
-                    .update({ rank: newRank })
-                    .eq('id', level.id);
-                if (error) {
-                    console.error('Phase 2 error for level', level.name, error);
-                    throw error;
-                }
-            }
-        }
-        
-        // Сохраняем уровень
-        if (editingLevelId) {
-            const { error } = await supabase
-                .from('levels')
-                .update({ ...baseData, rank: targetRank })
-                .eq('id', editingLevelId);
-            if (error) throw error;
         } else {
+            // === НОВЫЙ УРОВЕНЬ ===
+            
+            // Сдвигаем уровни вниз чтобы освободить место
+            await supabase.rpc('shift_ranks_down', {
+                p_category: category,
+                p_target_rank: targetRank
+            });
+            
+            // Вставляем новый уровень
             const { error } = await supabase
                 .from('levels')
                 .insert([{ ...baseData, rank: targetRank }]);
             if (error) throw error;
-        }
-        
-        // Проверяем что нет битых рангов после сохранения
-        const { data: checkData } = await supabase
-            .from('levels')
-            .select('id, rank, name, category')
-            .or('rank.lt.0,rank.gt.100000');
-        
-        if (checkData && checkData.length > 0) {
-            console.error('Broken ranks after save:', checkData);
-            // Автофикс
-            for (const level of checkData) {
-                const { data: catLevels } = await supabase
-                    .from('levels')
-                    .select('rank')
-                    .eq('category', level.category)
-                    .gt('rank', 0)
-                    .lt('rank', 100000)
-                    .order('rank', { ascending: false })
-                    .limit(1);
-                
-                const maxRank = catLevels && catLevels.length > 0 ? catLevels[0].rank + 1 : 1;
-                await supabase.from('levels').update({ rank: maxRank }).eq('id', level.id);
-            }
         }
 
         await loadLevels();
@@ -2898,13 +2890,7 @@ async function saveLevel() {
     } catch (err) {
         alert('Error: ' + err.message);
         console.error('saveLevel error:', err);
-        
-        // Экстренный фикс при ошибке
-        try {
-            await emergencyFixRanks();
-        } catch (fixErr) {
-            console.error('Emergency fix failed:', fixErr);
-        }
+        await emergencyFixRanks();
     }
 }
 
