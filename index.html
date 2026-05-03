@@ -2219,17 +2219,21 @@ async function loadAdminPanel() {
 function switchAdminTab(tab) {
     adminTab = tab;
     document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('tab-' + tab).classList.add('active');
+    const btn = document.getElementById('tab-' + tab);
+    if (btn) btn.classList.add('active');
 
-    document.getElementById('admin-records-tab').style.display = tab === 'records' ? 'block' : 'none';
-    document.getElementById('admin-levels-tab').style.display = tab === 'levels' ? 'block' : 'none';
-    document.getElementById('admin-players-tab').style.display = tab === 'players' ? 'block' : 'none';
-    document.getElementById('admin-search-tab').style.display = tab === 'search' ? 'block' : 'none';
+    // скрываем все панели
+    document.querySelectorAll('.admin-panel').forEach(p => p.style.display = 'none');
+    
+    // показываем нужную
+    const panel = document.getElementById('admin-' + tab + '-tab');
+    if (panel) panel.style.display = 'block';
 
     if (tab === 'records') loadAdminRecords();
     else if (tab === 'levels') loadAdminLevels();
     else if (tab === 'players') loadAdminPlayers();
     else if (tab === 'search') loadSearchTab();
+    else if (tab === 'ranks') loadRankDrag(); // <-- вот это грузит список
 }
 
 // ============================================
