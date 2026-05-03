@@ -1097,21 +1097,32 @@ async function loadLevels() {
         return;
     }
     try {
-        console.log('Fetching levels...');
         const { data, error } = await supabase
             .from('levels')
             .select('id, rank, name, publisher, verifier, level_id, image, video, points, category, first_victor')
             .order('rank', { ascending: true });
         
-        if (error) {
-            console.error('Error loading levels:', error);
-            throw error;
+        if (error) throw error;
+        
+        // Проверяем битые ранги
+        const broken = (data || []).filter(l => l.rank < 0 || l.rank > 100000);
+        if (broken.length > 0) {
+            console.error('Found broken ranks in loadLevels:', broken);
+            await emergencyFixRanks();
+            // Перезагружаем
+            const { data: fixedData } = await supabase
+                .from('levels')
+                .select('*')
+                .order('rank', { ascending: true });
+            allLevels = fixedData || [];
+        } else {
+            allLevels = data || [];
         }
         
-        console.log('Levels loaded:', data?.length || 0);
-        allLevels = data || [];
         challengeList = allLevels.filter(l => l.category === 'challenge');
         spamList = allLevels.filter(l => l.category === 'spam');
+        
+        console.log('Levels loaded:', allLevels.length, 'Challenge:', challengeList.length, 'Spam:', spamList.length);
         
     } catch (err) {
         console.error('Exception loading levels:', err);
@@ -2756,6 +2767,10 @@ async function saveLevel() {
                 return;
             }
             targetRank = aboveRank + 1;
+            if (targetRank >= belowRank) {
+                alert('Некорректные значения. Пример: Выше 1, Ниже 3 → Ранг 2');
+                return;
+            }
         } else if (!isNaN(manualRank)) {
             targetRank = manualRank;
         } else {
@@ -2765,50 +2780,74 @@ async function saveLevel() {
 
         const category = baseData.category;
         
-        let existingLevels;
+        // Получаем ВСЕ уровни этой категории (включая битые ранги)
+        let query = supabase
+            .from('levels')
+            .select('id, rank, name')
+            .eq('category', category);
+        
         if (editingLevelId) {
-            const { data, error } = await supabase
-                .from('levels')
-                .select('id, rank')
-                .eq('category', category)
-                .neq('id', editingLevelId)
-                .order('rank', { ascending: true });
-            if (error) throw error;
-            existingLevels = data || [];
-        } else {
-            const { data, error } = await supabase
-                .from('levels')
-                .select('id, rank')
-                .eq('category', category)
-                .order('rank', { ascending: true });
-            if (error) throw error;
-            existingLevels = data || [];
+            query = query.neq('id', editingLevelId);
         }
-
-        const conflict = existingLevels.find(l => l.rank === targetRank);
-
+        
+        const { data: allLevels, error: fetchError } = await query.order('rank', { ascending: true });
+        
+        if (fetchError) throw fetchError;
+        
+        // Разделяем: нормальные ранги и битые (отрицательные или > 100000)
+        const normalLevels = (allLevels || []).filter(l => l.rank > 0 && l.rank < 100000);
+        const brokenLevels = (allLevels || []).filter(l => l.rank < 0 || l.rank >= 100000);
+        
+        console.log('Normal levels:', normalLevels.length, 'Broken levels:', brokenLevels.length);
+        
+        // Сначала исправляем битые ранги (если есть)
+        if (brokenLevels.length > 0) {
+            for (const level of brokenLevels) {
+                const tempRank = 900000 + level.id; // Гарантированно уникальное временное значение
+                const { error } = await supabase
+                    .from('levels')
+                    .update({ rank: tempRank })
+                    .eq('id', level.id);
+                if (error) throw error;
+            }
+        }
+        
+        // Проверяем конфликт с нормальными уровнями
+        const conflict = normalLevels.find(l => l.rank === targetRank);
+        
         if (conflict) {
-            const toShift = existingLevels.filter(l => l.rank >= targetRank);
+            // Сдвигаем уровни с >= targetRank
+            const toShift = normalLevels.filter(l => l.rank >= targetRank).sort((a, b) => b.rank - a.rank); // Сначала большие!
             
-            // Фаза 1: +100000 (временные большие значения)
+            // Фаза 1: сдвигаем в временную зону (в обратном порядке, чтобы не было конфликтов!)
             for (const level of toShift) {
+                const tempRank = 800000 + level.id;
                 const { error } = await supabase
                     .from('levels')
-                    .update({ rank: level.rank + 100000 })
+                    .update({ rank: tempRank })
                     .eq('id', level.id);
-                if (error) throw error;
+                if (error) {
+                    console.error('Phase 1 error for level', level.name, error);
+                    throw error;
+                }
             }
             
-            // Фаза 2: -99999 (получаем +1 от оригинала)
-            for (const level of toShift) {
+            // Фаза 2: возвращаем с +1 (в прямом порядке)
+            const shiftedLevels = toShift.sort((a, b) => a.rank - b.rank); // Теперь в прямом порядке
+            for (const level of shiftedLevels) {
+                const newRank = level.rank + 1;
                 const { error } = await supabase
                     .from('levels')
-                    .update({ rank: level.rank - 99999 })
+                    .update({ rank: newRank })
                     .eq('id', level.id);
-                if (error) throw error;
+                if (error) {
+                    console.error('Phase 2 error for level', level.name, error);
+                    throw error;
+                }
             }
         }
-
+        
+        // Сохраняем уровень
         if (editingLevelId) {
             const { error } = await supabase
                 .from('levels')
@@ -2820,6 +2859,30 @@ async function saveLevel() {
                 .from('levels')
                 .insert([{ ...baseData, rank: targetRank }]);
             if (error) throw error;
+        }
+        
+        // Проверяем что нет битых рангов после сохранения
+        const { data: checkData } = await supabase
+            .from('levels')
+            .select('id, rank, name, category')
+            .or('rank.lt.0,rank.gt.100000');
+        
+        if (checkData && checkData.length > 0) {
+            console.error('Broken ranks after save:', checkData);
+            // Автофикс
+            for (const level of checkData) {
+                const { data: catLevels } = await supabase
+                    .from('levels')
+                    .select('rank')
+                    .eq('category', level.category)
+                    .gt('rank', 0)
+                    .lt('rank', 100000)
+                    .order('rank', { ascending: false })
+                    .limit(1);
+                
+                const maxRank = catLevels && catLevels.length > 0 ? catLevels[0].rank + 1 : 1;
+                await supabase.from('levels').update({ rank: maxRank }).eq('id', level.id);
+            }
         }
 
         await loadLevels();
@@ -2835,7 +2898,42 @@ async function saveLevel() {
     } catch (err) {
         alert('Error: ' + err.message);
         console.error('saveLevel error:', err);
+        
+        // Экстренный фикс при ошибке
+        try {
+            await emergencyFixRanks();
+        } catch (fixErr) {
+            console.error('Emergency fix failed:', fixErr);
+        }
     }
+}
+
+// Экстренный фикс рангов
+async function emergencyFixRanks() {
+    console.log('Running emergency rank fix...');
+    
+    const { data: broken } = await supabase
+        .from('levels')
+        .select('id, rank, name, category')
+        .or('rank.lt.0,rank.gt.100000');
+    
+    if (!broken || broken.length === 0) return;
+    
+    for (const level of broken) {
+        const { data: normal } = await supabase
+            .from('levels')
+            .select('rank')
+            .eq('category', level.category)
+            .gt('rank', 0)
+            .lt('rank', 100000)
+            .order('rank', { ascending: false })
+            .limit(1);
+        
+        const newRank = normal && normal.length > 0 ? normal[0].rank + 1 : 1;
+        await supabase.from('levels').update({ rank: newRank }).eq('id', level.id);
+    }
+    
+    console.log('Emergency fix complete');
 }
 
 let allPlayersCache = []; // Кэш всех игроков
