@@ -1,3 +1,669 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenge Grind</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #09090b;
+            --card-bg: #121216;
+            --card-bg-hover: #1a1a20;
+            --card-border: #22222a;
+            --card-border-hover: #38384b;
+            --text-main: #ffffff;
+            --text-muted: #8e8e9f;
+            --text-dim: #6b6b7b;
+            --accent-1: #ff9a00;
+            --accent-2: #ffce00;
+            --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            --accent-glow: rgba(255, 154, 0, 0.15);
+            --points-color: #ffce00;
+            --success: #22c55e;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        html { scroll-behavior: smooth; }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            background-image: radial-gradient(circle at top right, #1a1410 0%, transparent 40%),
+                              radial-gradient(circle at bottom left, #12100a 0%, transparent 40%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-1); }
+
+        header {
+            background-color: rgba(9, 9, 11, 0.95);
+            border-bottom: 1px solid var(--card-border);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+        .logo {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .logo:hover { transform: scale(1.02); }
+        .logo span {
+            background: var(--accent-gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        nav { display: flex; align-items: center; gap: 30px; }
+        .nav-links { display: flex; gap: 25px; margin-top: 6px; }
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--accent-2); }
+        .user-menu { display: flex; align-items: center; gap: 12px; }
+        .user-avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            color: #000;
+            cursor: pointer;
+            border: 2px solid var(--card-border);
+            transition: all 0.3s;
+        }
+        .user-avatar:hover { border-color: var(--accent-1); transform: scale(1.1); }
+        .btn-nav {
+            background: var(--accent-gradient);
+            color: #000 !important;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 800;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 14px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-nav:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 154, 0, 0.3); }
+        .btn-nav-outline {
+            background: transparent;
+            color: var(--text-main);
+            border: 2px solid var(--card-border);
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-nav-outline:hover { border-color: var(--accent-1); color: var(--accent-2); }
+        .btn-nav-red {
+            background: transparent;
+            color: var(--error);
+            border: 2px solid var(--error);
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-nav-red:hover { background: var(--error); color: #fff; }
+
+        #admin-search-tab .search-bar {
+    margin-bottom: 0;
+}
+
+#search-results .admin-table {
+    font-size: 13px;
+}
+
+#search-results .admin-table td {
+    padding: 10px 12px;
+}
+
+        main { max-width: 1200px; margin: 40px auto; padding: 0 20px; position: relative; z-index: 2; }
+        .page-title { font-size: 38px; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px; }
+        .contributor-text { color: var(--text-muted); font-size: 15px; font-weight: 500; margin-bottom: 20px; }
+        .contributor-text span { color: #d1d1dd; font-weight: 600; }
+        .level-count { color: var(--text-muted); font-size: 14px; font-weight: 600; margin-bottom: 20px; display: inline-block; background: rgba(255,255,255,0.03); padding: 6px 14px; border-radius: 8px; border: 1px solid var(--card-border); }
+        .level-count span { color: var(--accent-2); }
+
+        /* Auth */
+        .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; visibility: hidden; transition: all 0.3s ease; padding: 20px; }
+        .auth-overlay.active { opacity: 1; visibility: visible; }
+        .auth-modal { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; width: 100%; max-width: 420px; padding: 40px; position: relative; transform: scale(0.9) translateY(20px); opacity: 0; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .auth-overlay.active .auth-modal { transform: scale(1) translateY(0); opacity: 1; }
+        .auth-close { position: absolute; top: 15px; right: 20px; font-size: 28px; color: var(--text-muted); cursor: pointer; transition: color 0.2s; }
+        .auth-close:hover { color: var(--text-main); }
+        .auth-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; text-align: center; }
+        .auth-subtitle { color: var(--text-muted); font-size: 14px; text-align: center; margin-bottom: 30px; }
+        .auth-input { width: 100%; background: rgba(255,255,255,0.03); border: 2px solid var(--card-border); border-radius: 10px; padding: 14px 16px; color: var(--text-main); font-size: 15px; font-weight: 500; margin-bottom: 16px; outline: none; transition: all 0.3s; }
+        .auth-input:focus { border-color: var(--accent-1); box-shadow: 0 0 0 4px var(--accent-glow); }
+        .auth-input::placeholder { color: var(--text-dim); }
+        .auth-btn { width: 100%; background: var(--accent-gradient); color: #000; border: none; padding: 14px; font-size: 16px; font-weight: 800; border-radius: 10px; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 10px; }
+        .auth-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255, 154, 0, 0.3); }
+        .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .auth-switch { text-align: center; margin-top: 20px; color: var(--text-muted); font-size: 14px; }
+        .auth-switch a { color: var(--accent-2); cursor: pointer; font-weight: 600; }
+        .auth-switch a:hover { text-decoration: underline; }
+        .auth-error { background: rgba(239, 68, 68, 0.1); border: 1px solid var(--error); color: var(--error); padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+        .auth-error.show { display: block; }
+
+        /* Home */
+        #home-view { text-align: center; padding: 60px 20px; animation: fadeIn 0.5s ease; }
+        .hero-title { font-size: 60px; font-weight: 800; margin-bottom: 20px; background: var(--accent-gradient); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; }
+        .hero-subtitle { font-size: 18px; color: var(--text-muted); max-width: 600px; margin: 0 auto 40px auto; line-height: 1.6; }
+        .hero-actions { display: flex; justify-content: center; gap: 20px; margin-bottom: 60px; flex-wrap: wrap; }
+        .btn-primary { background: var(--accent-gradient); color: #000; border: none; padding: 14px 32px; font-size: 16px; font-weight: 800; border-radius: 10px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(255, 154, 0, 0.4); }
+        .btn-secondary { background: rgba(255, 255, 255, 0.03); color: var(--text-main); border: 2px solid var(--card-border); padding: 14px 32px; font-size: 16px; font-weight: 800; border-radius: 10px; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn-secondary:hover { border-color: var(--accent-1); color: var(--accent-2); background: rgba(255, 154, 0, 0.05); transform: translateY(-3px); }
+        .changelog-container { max-width: 600px; margin: 0 auto; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 30px; text-align: left; position: relative; overflow: hidden; }
+        .changelog-container::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--accent-gradient); }
+        .changelog-title { font-size: 22px; font-weight: 800; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
+        .changelog-item { border-left: 2px solid var(--card-border); padding-left: 20px; position: relative; margin-bottom: 20px; }
+        .changelog-item::before { content: ''; position: absolute; left: -6px; top: 5px; width: 10px; height: 10px; background: var(--accent-1); border-radius: 50%; box-shadow: 0 0 10px var(--accent-1); }
+        .changelog-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .version-badge { background: var(--accent-gradient); color: #000; padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 14px; }
+        .version-date { color: var(--text-muted); font-size: 14px; font-weight: 500; }
+        .changelog-desc { color: #c9c9d6; font-size: 15px; line-height: 1.6; }
+
+        /* Lists */
+        #lists-view { display: none; animation: fadeIn 0.5s ease; }
+        .search-bar { width: 100%; max-width: 400px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 12px 18px; color: var(--text-main); font-size: 15px; font-weight: 500; margin-bottom: 20px; outline: none; transition: all 0.3s; }
+        .search-bar:focus { border-color: var(--accent-1); box-shadow: 0 0 0 3px var(--accent-glow); }
+        .search-bar::placeholder { color: var(--text-muted); }
+        .category-selector { display: inline-flex; background-color: var(--card-bg); padding: 6px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--card-border); flex-wrap: wrap; }
+        .category-btn { background-color: transparent; border: none; color: var(--text-muted); padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 15px; transition: all 0.3s; }
+        .category-btn.active { background: var(--accent-gradient); color: #000; box-shadow: 0 4px 15px rgba(255, 154, 0, 0.2); }
+        .category-btn:hover:not(.active) { color: var(--text-main); background: rgba(255, 255, 255, 0.05); }
+        .level-list { display: flex; flex-direction: column; gap: 20px; }
+        .level-card { background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; display: flex; overflow: hidden; cursor: pointer; transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); height: 150px; position: relative; opacity: 0; transform: translateY(20px); animation: cardAppear 0.5s ease forwards; }
+        .level-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent-gradient); opacity: 0; transition: opacity 0.3s; }
+        .level-card:hover { transform: translateY(-4px) scale(1.01); border-color: var(--card-border-hover); box-shadow: 0 15px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,154,0,0.1); }
+        .level-card:hover::before { opacity: 1; }
+        .level-image { width: 260px; min-width: 260px; background-color: #0a0a0d; position: relative; overflow: hidden; }
+        .level-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+        .level-card:hover .level-image img { transform: scale(1.08); }
+        .img-loader { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 30px; height: 30px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent-1); border-radius: 50%; animation: spin 0.8s linear infinite; pointer-events: none; opacity: 1; transition: opacity 0.3s; }
+        .level-image img.loaded + .img-loader { opacity: 0; }
+        .play-btn-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 55px; height: 55px; background: rgba(0,0,0,0.6); border: 2px solid var(--accent-1); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 10; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); backdrop-filter: blur(4px); }
+        .play-btn-overlay:hover { background: var(--accent-gradient); border-color: transparent; transform: translate(-50%, -50%) scale(1.15); box-shadow: 0 0 20px rgba(255, 154, 0, 0.6); }
+        .play-icon { width: 0; height: 0; border-style: solid; border-width: 10px 0 10px 16px; border-color: transparent transparent transparent #ffffff; margin-left: 5px; transition: border-color 0.3s; }
+        .play-btn-overlay:hover .play-icon { border-color: transparent transparent transparent #000000; }
+        .level-info { padding: 25px; display: flex; flex-direction: column; justify-content: center; flex-grow: 1; z-index: 2; background: linear-gradient(90deg, var(--card-bg) 0%, transparent 100%); }
+        .level-title { font-size: 24px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+        .rank { color: var(--accent-1); }
+        .level-details { display: flex; gap: 25px; font-size: 14px; flex-wrap: wrap; }
+        .detail-item { color: var(--text-main); font-weight: 500; }
+        .label { color: var(--text-muted); font-weight: 400; margin-right: 4px; }
+        .level-points { margin-left: auto; display: flex; flex-direction: column; justify-content: center; align-items: flex-end; padding-right: 35px; }
+        .points-value { font-size: 28px; font-weight: 800; background: var(--accent-gradient); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .points-label { font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+
+        /* Leaderboard */
+        #leaderboard-view { display: none; animation: fadeIn 0.5s ease; }
+        .leaderboard-container { display: grid; grid-template-columns: 380px 1fr; gap: 30px; align-items: start; }
+        .lb-list-panel { background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 0; min-height: 500px; display: flex; flex-direction: column; overflow: hidden; }
+        .lb-list-header { padding: 20px; border-bottom: 1px solid var(--card-border); font-size: 18px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .lb-player-item { display: flex; align-items: center; padding: 14px 20px; cursor: pointer; transition: all 0.2s; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .lb-player-item:hover { background: rgba(255,255,255,0.03); }
+        .lb-player-item.active { background: rgba(255, 154, 0, 0.08); border-left: 3px solid var(--accent-1); }
+        .lb-rank { font-size: 14px; font-weight: 800; color: var(--accent-1); width: 40px; }
+        .lb-name { flex: 1; font-weight: 600; font-size: 15px; }
+        .lb-score { font-weight: 700; font-size: 14px; color: var(--points-color); }
+        .lb-info-panel { background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 30px; min-height: 500px; position: sticky; top: 100px; }
+        .lb-profile-header { text-align: center; margin-bottom: 30px; padding-bottom: 25px; border-bottom: 1px solid var(--card-border); }
+        .lb-profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 800; color: #000; margin: 0 auto 15px; border: 3px solid var(--card-border); }
+        .lb-profile-name { font-size: 24px; font-weight: 800; margin-bottom: 5px; }
+        .lb-profile-rank { color: var(--text-muted); font-size: 14px; }
+        .lb-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .lb-stat-box { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; text-align: center; }
+        .lb-stat-value { font-size: 24px; font-weight: 800; color: var(--accent-2); margin-bottom: 4px; }
+        .lb-stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .lb-hardest { background: linear-gradient(135deg, rgba(255,154,0,0.1), rgba(255,206,0,0.05)); border: 1px solid rgba(255,154,0,0.2); border-radius: 12px; padding: 16px 20px; margin-bottom: 25px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all 0.3s; }
+        .lb-hardest:hover { border-color: var(--accent-1); transform: translateX(4px); }
+        .lb-hardest-icon { font-size: 24px; }
+        .lb-hardest-text { flex: 1; }
+        .lb-hardest-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; }
+        .lb-hardest-name { font-weight: 700; font-size: 16px; color: var(--accent-2); }
+        .lb-hardest-rank { font-size: 13px; color: var(--text-muted); }
+        .lb-completed-title { font-size: 16px; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
+        .lb-completed-count { background: var(--accent-gradient); color: #000; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 800; }
+        .lb-levels-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .lb-level-tag { background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .lb-level-tag:hover { border-color: var(--accent-1); background: rgba(255,154,0,0.05); color: var(--accent-2); }
+        .lb-level-tag .tag-rank { color: var(--accent-1); font-weight: 700; margin-right: 4px; }
+
+        /* Submit */
+        #submit-view { display: none; animation: fadeIn 0.5s ease; }
+        .submit-container { max-width: 600px; margin: 0 auto; }
+        .submit-header { background: linear-gradient(135deg, #936914, #cd8e29); border-radius: 16px 16px 0 0; padding: 40px 30px; text-align: center; position: relative; overflow: hidden; }
+        .submit-header::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%); }
+        .submit-header-icon { width: 60px; height: 60px; background: rgba(255,255,255,0.15); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-size: 28px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); position: relative; z-index: 1; }
+        .submit-header h2 { font-size: 28px; font-weight: 800; position: relative; z-index: 1; }
+        .submit-header p { color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 5px; position: relative; z-index: 1; }
+        .submit-form { background: var(--card-bg); border: 1px solid var(--card-border); border-top: none; border-radius: 0 0 16px 16px; padding: 30px; }
+        .form-group { margin-bottom: 24px; }
+        .form-label { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; margin-bottom: 10px; }
+        .form-label .icon { font-size: 18px; }
+        .form-label .optional { background: rgba(255,255,255,0.05); color: var(--text-dim); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-input, .form-select { width: 100%; background: rgba(255,255,255,0.03); border: 2px solid var(--card-border); border-radius: 10px; padding: 14px 16px; color: var(--text-main); font-size: 15px; font-weight: 500; outline: none; transition: all 0.3s; }
+        .form-input:focus, .form-select:focus { border-color: var(--accent-1); box-shadow: 0 0 0 4px var(--accent-glow); }
+        .form-input::placeholder { color: var(--text-dim); }
+        .form-select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238e8e9f' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; }
+        .form-select option { background: var(--card-bg); color: var(--text-main); }
+        .form-hint { color: var(--text-dim); font-size: 13px; margin-top: 6px; }
+        .form-checkbox { display: flex; align-items: flex-start; gap: 12px; margin-top: 10px; }
+        .form-checkbox input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent-1); margin-top: 2px; cursor: pointer; }
+        .form-checkbox label { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+        .form-checkbox label a { color: var(--accent-2); text-decoration: underline; }
+        .submit-btn { width: 100%; background: var(--accent-gradient); color: #000; border: none; padding: 16px; font-size: 16px; font-weight: 800; border-radius: 10px; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.5px; }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255, 154, 0, 0.4); }
+        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .submit-success { background: rgba(34, 197, 94, 0.1); border: 1px solid var(--success); color: var(--success); padding: 16px; border-radius: 10px; text-align: center; font-weight: 600; margin-bottom: 20px; display: none; }
+        .submit-success.show { display: block; }
+
+        /* Admin Panel */
+        #admin-view { display: none; animation: fadeIn 0.5s ease; }
+        .admin-tabs { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
+        .admin-tab { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-muted); padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.3s; text-transform: uppercase; }
+        .admin-tab.active { background: var(--accent-gradient); color: #000; border-color: transparent; }
+        .admin-tab:hover:not(.active) { border-color: var(--accent-1); color: var(--text-main); }
+        .admin-panel { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 25px; }
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .admin-table th { text-align: left; padding: 12px 15px; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--card-border); }
+        .admin-table td { padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 14px; }
+        .admin-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .admin-table a { color: var(--accent-2); text-decoration: none; }
+        .admin-table a:hover { text-decoration: underline; }
+        .admin-actions { display: flex; gap: 8px; }
+        .btn-icon { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--card-border); background: rgba(255,255,255,0.03); color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 16px; }
+        .btn-icon:hover { border-color: var(--accent-1); color: var(--accent-2); background: rgba(255,154,0,0.1); }
+        .btn-icon.approve { color: var(--success); }
+        .btn-icon.approve:hover { background: rgba(34,197,94,0.15); border-color: var(--success); }
+        .btn-icon.reject { color: var(--error); }
+        .btn-icon.reject:hover { background: rgba(239,68,68,0.15); border-color: var(--error); }
+        .btn-icon.edit { color: var(--info); }
+        .btn-icon.edit:hover { background: rgba(59,130,246,0.15); border-color: var(--info); }
+        .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .status-approved { background: rgba(34,197,94,0.15); color: var(--success); }
+        .status-pending { background: rgba(245,158,11,0.15); color: var(--warning); }
+        .status-rejected { background: rgba(239,68,68,0.15); color: var(--error); }
+        .admin-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .admin-form-grid .form-group { margin-bottom: 0; }
+        .admin-form-grid .form-group.full { grid-column: 1 / -1; }
+        @media (max-width: 768px) { .admin-form-grid { grid-template-columns: 1fr; } }
+        .admin-section-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: var(--accent-2); display: flex; align-items: center; justify-content: space-between; }
+        .admin-empty { color: var(--text-dim); text-align: center; padding: 40px; font-size: 14px; }
+        .admin-search { max-width: 300px; margin-bottom: 20px; }
+        .db-status { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
+        .db-status.connected { background: rgba(34,197,94,0.15); color: var(--success); border: 1px solid var(--success); }
+        .db-status.local { background: rgba(245,158,11,0.15); color: var(--warning); border: 1px solid var(--warning); }
+
+        @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+#notif-bell:hover svg {
+    color: var(--accent-2) !important;
+}
+
+#notif-bell.has-unread svg {
+    color: var(--error) !important;
+    animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-10deg); }
+    75% { transform: rotate(10deg); }
+}
+
+.notif-dropdown {
+    position: absolute;
+    top: 50px;
+    right: 20px;
+    width: 320px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    z-index: 1000;
+    display: none;
+    overflow: hidden;
+}
+
+.notif-dropdown.active {
+    display: block;
+    animation: fadeIn 0.2s ease;
+}
+
+.notif-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--card-border);
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notif-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.notif-item {
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.notif-item:hover {
+    background: rgba(255,255,255,0.03);
+}
+
+.notif-item.unread {
+    border-left: 3px solid var(--accent-1);
+}
+
+.notif-item.read {
+    opacity: 0.6;
+}
+
+.notif-icon {
+    font-size: 20px;
+    min-width: 24px;
+}
+
+.notif-content {
+    flex: 1;
+}
+
+.notif-text {
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text-main);
+}
+
+.notif-time {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+}
+
+.notif-empty {
+    padding: 30px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 13px;
+}
+
+                /* Profile Modal Styles */
+        #profile-modal .modal-content {
+            max-width: 700px;
+        }
+        #profile-modal .lb-profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 800;
+            color: #000;
+            margin: 0 auto 15px;
+            border: 3px solid var(--card-border);
+        }
+        #profile-modal .lb-profile-name {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+        #profile-modal .lb-profile-rank {
+            color: var(--text-muted);
+            font-size: 14px;
+            text-align: center;
+        }
+        #profile-modal .lb-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        #profile-modal .lb-stat-box {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        #profile-modal .lb-stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--accent-2);
+            margin-bottom: 4px;
+        }
+        #profile-modal .lb-stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        #profile-modal .lb-hardest {
+            background: linear-gradient(135deg, rgba(255,154,0,0.1), rgba(255,206,0,0.05));
+            border: 1px solid rgba(255,154,0,0.2);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        #profile-modal .lb-hardest:hover {
+            border-color: var(--accent-1);
+            transform: translateX(4px);
+        }
+        #profile-modal .lb-hardest-icon {
+            font-size: 24px;
+        }
+        #profile-modal .lb-hardest-text {
+            flex: 1;
+        }
+        #profile-modal .lb-hardest-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        #profile-modal .lb-hardest-name {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--accent-2);
+        }
+        #profile-modal .lb-hardest-rank {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        #profile-modal .lb-completed-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        #profile-modal .lb-completed-count {
+            background: var(--accent-gradient);
+            color: #000;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+        #profile-modal .lb-levels-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s ease; padding: 20px; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; width: 100%; max-width: 900px; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.5); transform: scale(0.9) translateY(30px); opacity: 0; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal-overlay.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+        .modal-close { position: absolute; top: 15px; right: 20px; font-size: 32px; color: rgba(255,255,255,0.5); cursor: pointer; z-index: 10; transition: all 0.2s; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(0,0,0,0.3); }
+        .modal-close:hover { color: #fff; background: rgba(0,0,0,0.8); transform: rotate(90deg); }
+        .modal-header { position: relative; height: 220px; background: #000; }
+        .modal-header img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; mask-image: linear-gradient(to bottom, black 40%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%); }
+        .modal-title-area { position: absolute; bottom: 25px; left: 35px; }
+        .modal-title-area h2 { font-size: 36px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
+        .modal-body { padding: 35px; }
+
+        /* Modal stats cards */
+        .modal-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 30px; }
+        .modal-stat-card { background: rgba(0,0,0,0.3); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; transition: all 0.2s; }
+        .modal-stat-card:hover { border-color: var(--card-border-hover); transform: translateY(-2px); }
+        .modal-stat-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; display: block; }
+        .modal-stat-card .value { font-size: 15px; font-weight: 600; color: var(--text-main); word-break: break-word; }
+        .modal-stat-card .value.points { color: var(--points-color); font-weight: 800; font-size: 18px; }
+        .copy-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); color: var(--text-muted); padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; margin-left: 8px; transition: all 0.2s; }
+        .copy-btn:hover { background: var(--accent-gradient); color: #000; border-color: transparent; font-weight: 700; }
+        .copy-btn.copied { background: var(--success); color: #fff; border-color: var(--success); }
+
+        /* Video showcase */
+        .video-showcase { margin-bottom: 30px; border-radius: 12px; overflow: hidden; border: 1px solid var(--card-border); background: #000; }
+        .video-showcase iframe { width: 100%; height: 400px; border: none; display: block; }
+        .video-placeholder { padding: 40px; text-align: center; color: var(--text-dim); font-size: 14px; background: rgba(0,0,0,0.2); }
+
+        .records-section h3 { font-size: 22px; margin-bottom: 20px; border-bottom: 2px solid var(--card-border); padding-bottom: 12px; color: var(--accent-2); }
+        .record-item { display: flex; align-items: center; gap: 15px; padding: 14px 16px; background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.03); border-radius: 10px; margin-bottom: 10px; transition: all 0.2s; }
+        .record-item:hover { background: rgba(255,255,255,0.03); border-color: rgba(255,154,0,0.1); }
+        .record-rank { font-size: 14px; font-weight: 800; color: var(--accent-1); min-width: 30px; }
+        .record-player { flex: 1; font-weight: 600; font-size: 15px; }
+        .record-video { color: var(--accent-2); font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
+        .record-video:hover { color: var(--accent-1); }
+        .record-date { color: var(--text-dim); font-size: 12px; }
+        .record-status { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+
+        /* TG Float */
+        .tg-float-btn { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--card-bg); border: 2px solid var(--accent-1); border-radius: 30px; display: flex; align-items: center; justify-content: flex-start; padding-left: 14px; text-decoration: none; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.5); transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s, box-shadow 0.3s; z-index: 999; }
+        .tg-float-btn:hover { width: 280px; background: var(--accent-gradient); box-shadow: 0 10px 25px rgba(255, 154, 0, 0.4); border-color: transparent; }
+        .tg-icon { min-width: 28px; height: 28px; color: var(--accent-1); transition: color 0.3s; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .tg-float-btn:hover .tg-icon { color: #000; }
+        .tg-text { color: #000; font-weight: 800; font-size: 15px; white-space: nowrap; margin-left: 15px; opacity: 0; transform: translateX(10px); transition: opacity 0.3s, transform 0.3s; }
+        .tg-float-btn:hover .tg-text { opacity: 1; transform: translateX(0); }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes cardAppear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+        .bg-star { position: fixed; background-color: rgba(255, 206, 0, 0.4); box-shadow: 0 0 15px rgba(255, 154, 0, 0.6); border-radius: 50%; bottom: -20px; pointer-events: none; z-index: 1; animation: starFloat linear infinite; }
+        @keyframes starFloat { 0% { transform: translateY(0) scale(1); opacity: 0; } 10% { opacity: 1; } 80% { opacity: 1; } 100% { transform: translateY(-110vh) scale(0.5); opacity: 0; } }
+        .loading-spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent-1); border-radius: 50%; animation: spin-center 0.8s linear infinite; margin: 40px auto; }
+        @keyframes spin-center { to { transform: rotate(360deg); } }
+
+        /* Responsive */
+        @media (max-width: 900px) { 
+            .leaderboard-container { grid-template-columns: 1fr; } 
+            .lb-info-panel { position: static; min-height: 300px; } 
+            .modal-stats-grid { grid-template-columns: 1fr 1fr; }
+            .video-showcase iframe { height: 250px; }
+        }
+        @media (max-width: 768px) { 
+            .level-card { height: auto; flex-direction: column; } 
+            .level-image { width: 100%; height: 180px; } 
+            .level-points { margin: 0; padding: 0 25px 25px 25px; align-items: flex-start; } 
+            header { flex-direction: column; gap: 20px; padding: 20px; } 
+            nav { flex-direction: column; gap: 15px; } 
+            .nav-links { margin-top: 0; } 
+            .hero-title { font-size: 40px; } 
+            .hero-actions { flex-direction: column; padding: 0 20px; } 
+            .tg-float-btn { bottom: 20px; right: 20px; } 
+            .modal-title-area h2 { font-size: 24px; } 
+            .modal-header { height: 160px; } 
+            .auth-modal { padding: 30px 20px; } 
+            .modal-stats-grid { grid-template-columns: 1fr; }
+            .admin-form-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+<base target="_blank">
+<base target="_blank">
+</head>
+<body>
+
+    <header>
+        <div class="logo" onclick="navigateTo('home')">Challenge <span>Grind</span></div>
+        <nav>
+            <div class="nav-links">
+                <a id="nav-lists" onclick="navigateTo('lists')">Lists</a>
+                <a id="nav-leaderboard" onclick="navigateTo('leaderboard')">Leaderboard</a>
+                <a id="nav-submit" onclick="navigateTo('submit')">Submit</a>
+                <a id="nav-admin" onclick="navigateTo('admin')" style="display:none;color:var(--error);">Admin</a>
+            </div>
+            <div class="user-menu" id="user-menu">
+    <button class="btn-nav" onclick="openAuth('login')">Login</button>
+    <button class="btn-nav-outline" onclick="openAuth('register')">Register</button>
+</div>
+<!-- Колокольчик уведомлений -->
+<div id="notif-bell" style="display:none; position:relative; cursor:pointer;" onclick="toggleNotifications()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted); transition:color 0.3s;">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+    </svg>
+    <span id="notif-count" style="position:absolute; top:-5px; right:-5px; background:var(--error); color:#fff; font-size:10px; font-weight:800; padding:2px 6px; border-radius:10px; display:none; animation:pulse 2s infinite;">0</span>
+</div>
+        </nav>
+
+    <!-- Notification Dropdown -->
+<div class="notif-dropdown" id="notif-dropdown">
+    <div class="notif-header">
+        <span>🔔 Notifications</span>
+        <span style="font-size:12px; color:var(--text-dim); cursor:pointer;" onclick="markAllRead()">Mark all read</span>
+    </div>
+    <div class="notif-list" id="notif-list">
+        <div class="notif-empty">No notifications</div>
+    </div>
+</div>
+    </header>
+
+    <main>
 <!-- HOME -->
 <section id="home-view">
     <h1 class="hero-title">Challenge Grind</h1>
@@ -40,3 +706,2627 @@
         </div>
     </div>
 </section>
+
+        <!-- LISTS -->
+        <section id="lists-view">
+            <h1 class="page-title" id="page-title-text">Challenge List</h1>
+            <p class="contributor-text">Thumbnail Contributor: <span>ItzTheRealMint</span></p>
+            <div class="level-count" id="level-counter">Всего уровней: <span>0</span></div>
+            <div class="category-selector">
+                <button class="category-btn active" onclick="switchCategory('challenge', this)">Challenge List</button>
+                <button class="category-btn" onclick="switchCategory('spam', this)">Spam Challenge List</button>
+            </div>
+            <input type="text" class="search-bar" id="search-input" placeholder="Поиск по названию, автору или ID..." oninput="filterLevels(this.value)">
+            <div class="level-list" id="level-list"></div>
+        </section>
+
+        <!-- LEADERBOARD -->
+        <section id="leaderboard-view">
+            <h1 class="page-title">Leaderboard</h1>
+            <div class="leaderboard-container">
+                <div class="lb-list-panel">
+                    <div class="lb-list-header">🏆 Top Players</div>
+                    <div id="lb-players-list"></div>
+                </div>
+                <div class="lb-info-panel" id="lb-info-panel">
+                    <div class="empty-state" style="border: none; background: transparent;">
+                        Выберите игрока слева,<br>чтобы увидеть подробную статистику
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SUBMIT -->
+        <section id="submit-view">
+            <div class="submit-container">
+                <div class="submit-header">
+                    <div class="submit-header-icon">🏆</div>
+                    <h2>Submit a new record</h2>
+                    <p>Share your achievement with the community</p>
+                </div>
+                <div class="submit-form">
+                    <div class="submit-success" id="submit-success">✅ Рекорд успешно отправлен! Ожидайте проверки модератором.</div>
+                    <div class="form-group">
+                        <div class="form-label"><span class="icon">🎮</span> Level</div>
+                        <select class="form-select" id="submit-level">
+                            <option value="">Выберите уровень...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label"><span class="icon">🎬</span> Video</div>
+                        <input type="text" class="form-input" id="submit-video" placeholder="https://youtube.com/... или https://t.me/...">
+                        <div class="form-hint">Видео подтверждающее легитимность рекорда (YouTube, Telegram, и т.д.)</div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label"><span class="icon">📝</span> Notes or comments <span class="optional">OPTIONAL</span></div>
+                        <textarea class="form-input" id="submit-notes" rows="3" placeholder="Дополнительные заметки..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-checkbox">
+                            <input type="checkbox" id="submit-agree">
+                            <label for="submit-agree">Я прочитал и согласен с <a href="#">правилами отправки</a></label>
+                        </div>
+                    </div>
+                    <button class="submit-btn" id="submit-btn" onclick="submitRecord()">Отправить Рекорд</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ADMIN PANEL -->
+        <section id="admin-view">
+            <h1 class="page-title">Admin Panel</h1>
+            <div id="db-status" class="db-status local" style="margin-bottom: 15px;">
+                <span>⚠️</span> Local Mode — данные сохраняются в браузере
+            </div>
+            <div class="admin-tabs">
+    <button class="admin-tab active" onclick="switchAdminTab('records')" id="tab-records">📋 Records</button>
+    <button class="admin-tab" onclick="switchAdminTab('levels')" id="tab-levels">🎮 Levels</button>
+    <button class="admin-tab" onclick="switchAdminTab('players')" id="tab-players">👤 Players</button>
+    <button class="admin-tab" onclick="switchAdminTab('search')" id="tab-search">🔍 Search Records</button>
+    <button class="admin-tab" onclick="switchAdminTab('ranks')" id="tab-ranks">↕️ Ранги</button>
+</div>
+
+            <!-- Records Tab -->
+            <div id="admin-records-tab" class="admin-panel">
+                <div class="admin-section-title">
+                    <span>Pending Records</span>
+                    <button class="btn-nav" onclick="loadAdminRecords()" style="padding: 8px 16px; font-size: 12px;">🔄 Refresh</button>
+                </div>
+                <div id="admin-records-list">
+                    <div class="admin-empty">Loading records...</div>
+                </div>
+            </div>
+
+            <!-- Levels Tab -->
+            <div id="admin-levels-tab" class="admin-panel" style="display:none;">
+                <div class="admin-section-title">
+                    <span>Manage Levels</span>
+                    <button class="btn-nav" onclick="openLevelAdd()" style="padding: 8px 16px; font-size: 12px;">➕ Add Level</button>
+                </div>
+                <div id="admin-levels-list">
+                    <div class="admin-empty">Loading levels...</div>
+                </div>
+            </div>
+
+            <!-- Players Tab -->
+            <!-- Players Tab -->
+<div id="admin-players-tab" class="admin-panel" style="display:none;">
+    <div class="admin-section-title">
+        <span>Player Records</span>
+        <span id="players-total-count" style="font-size: 14px; color: var(--text-muted);"></span>
+    </div>
+    <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+        <input type="text" class="search-bar admin-search" id="admin-player-search" placeholder="Search by username..." oninput="searchAdminPlayer(this.value)" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+        <button class="btn-nav" onclick="loadAllPlayers()" style="padding: 10px 20px; font-size: 13px;">🔄 Load All</button>
+    </div>
+    <div id="admin-players-list">
+        <div class="admin-empty">Click "Load All" to see all players, or search by username</div>
+    </div>
+</div>
+<!-- Search Records Tab -->
+<div id="admin-search-tab" class="admin-panel" style="display:none;">
+    <div class="admin-section-title">
+        <span>🔍 Search Records & Completions</span>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+        <div>
+            <div class="form-label">Search by Player</div>
+            <input type="text" class="search-bar" id="search-player-input" placeholder="Username..." oninput="searchByPlayer(this.value)" style="width: 100%; margin-bottom: 0;">
+        </div>
+        <div>
+            <div class="form-label">Search by Level</div>
+            <input type="text" class="search-bar" id="search-level-input" placeholder="Level name..." oninput="searchByLevel(this.value)" style="width: 100%; margin-bottom: 0;">
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+        <button class="btn-nav" onclick="loadAllRecords()" style="padding: 8px 16px; font-size: 12px;">🔄 Load All Records</button>
+        <button class="btn-nav-outline" onclick="clearSearch()" style="padding: 8px 16px; font-size: 12px;">Clear</button>
+    </div>
+    
+    <div id="search-results">
+        <div class="admin-empty">Enter player name or level name to search</div>
+    </div>
+</div>
+<div id="admin-ranks-tab" class="admin-panel" style="display:none;">
+  <div class="admin-section-title">
+    <span>Ручной сдвиг челленджей</span>
+    <button class="btn-nav" onclick="loadRankDrag()" style="padding: 8px 16px; font-size: 12px;">🔄 Обновить</button>
+  </div>
+  <p style="color:var(--text-muted);font-size:13px;margin-bottom:15px;">
+    Зажми уровень и перетащи вверх/вниз. Ранг изменится, дырки закроются автоматически.
+  </p>
+  <div id="rank-drag-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+</div>
+        </section>
+    </main>
+
+    <!-- Auth Modal -->
+    <div class="auth-overlay" id="auth-overlay">
+        <div class="auth-modal">
+            <div class="auth-close" onclick="closeAuth()">&times;</div>
+            <div class="auth-title" id="auth-title">Login</div>
+            <div class="auth-subtitle" id="auth-subtitle">Войдите в свой аккаунт</div>
+            <div class="auth-error" id="auth-error"></div>
+            <input type="text" class="auth-input" id="auth-username" placeholder="Username">
+            <input type="email" class="auth-input" id="auth-email" placeholder="Email" style="display:none;">
+            <input type="password" class="auth-input" id="auth-password" placeholder="Password">
+            <button class="auth-btn" id="auth-btn" onclick="handleAuth()">Login</button>
+            <div class="auth-switch" id="auth-switch">
+                Нет аккаунта? <a onclick="switchAuthMode('register')">Зарегистрироваться</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level Modal -->
+    <div class="modal-overlay" id="level-modal">
+        <div class="modal-content">
+            <div class="modal-close" onclick="closeModal()">&times;</div>
+            <div class="modal-header">
+                <img id="modal-img" src="" alt="Level Image">
+                <div class="modal-title-area">
+                    <h2 id="modal-title">Level Name</h2>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div id="modal-video-container" style="display:none;">
+                    <div class="video-showcase">
+                        <iframe id="modal-video" src="" allowfullscreen></iframe>
+                    </div>
+                </div>
+                <div class="modal-stats-grid">
+                    <div class="modal-stat-card"><span class="label">Publisher</span><div class="value" id="modal-pub"></div></div>
+                    <div class="modal-stat-card"><span class="label">Verifier</span><div class="value" id="modal-ver"></div></div>
+                    <div class="modal-stat-card"><span class="label">Level ID</span><div class="value"><span id="modal-id"></span><button class="copy-btn" onclick="copyID()">Копировать</button></div></div>
+                    <div class="modal-stat-card" id="modal-fv-card" style="display:none;"><span class="label">First Victor</span><div class="value" id="modal-fv"></div></div>
+                    <div class="modal-stat-card"><span class="label">Points</span><div class="value points" id="modal-pts"></div></div>
+                    <div class="modal-stat-card"><span class="label">Category</span><div class="value" id="modal-cat"></div></div>
+                </div>
+                <div class="records-section">
+                    <h3>🏆 Records</h3>
+                    <div id="modal-records-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level Edit Modal (Admin) -->
+    <div class="modal-overlay" id="level-edit-modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-close" onclick="closeLevelEdit()">&times;</div>
+            <div class="modal-body">
+                <h2 style="margin-bottom: 25px; font-size: 24px;">Edit Level</h2>
+                <div class="admin-form-grid">
+    <div class="form-group"><div class="form-label">Rank (ручной)</div><input type="number" class="form-input" id="edit-rank"></div>
+    <div class="form-group"><div class="form-label">Name</div><input type="text" class="form-input" id="edit-name"></div>
+    
+    <!-- НОВЫЕ ПОЛЯ ДЛЯ АВТО-ВСТАВКИ МЕЖДУ ТОПАМИ -->
+    <div class="form-group" style="grid-column: 1 / -1; background: rgba(255,154,0,0.05); border: 1px dashed var(--accent-1); border-radius: 10px; padding: 12px; margin-bottom: 10px;">
+        <div style="font-size: 13px; color: var(--accent-2); font-weight: 700; margin-bottom: 8px;">⚡ Авто-вставка между топами (опционально)</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div><div class="form-label" style="font-size: 12px;">Выше топа (число меньше)</div><input type="number" class="form-input" id="edit-above-rank" placeholder="например 28"></div>
+            <div><div class="form-label" style="font-size: 12px;">Ниже топа (число больше)</div><input type="number" class="form-input" id="edit-below-rank" placeholder="например 30"></div>
+        </div>
+        <div style="font-size: 12px; color: var(--text-dim); margin-top: 6px;">Если заполнить оба поля, ранг посчитается автоматически (например: выше 28, ниже 30 → ранг 29)</div>
+    </div>
+    
+    <div class="form-group"><div class="form-label">Publisher</div><input type="text" class="form-input" id="edit-pub"></div>
+    <div class="form-group"><div class="form-label">Verifier</div><input type="text" class="form-input" id="edit-ver"></div>
+    <div class="form-group"><div class="form-label">Level ID (GD)</div><input type="text" class="form-input" id="edit-level-id"></div>
+    <div class="form-group"><div class="form-label">Image Name</div><input type="text" class="form-input" id="edit-img"></div>
+    <div class="form-group full"><div class="form-label">YouTube Showcase URL</div><input type="text" class="form-input" id="edit-video" placeholder="https://youtube.com/watch?v=..."></div>
+    <div class="form-group"><div class="form-label">Category</div><select class="form-select" id="edit-category"><option value="challenge">Challenge</option><option value="spam">Spam</option></select></div>
+    <div class="form-group"><div class="form-label">First Victor</div><input type="text" class="form-input" id="edit-fv"></div>
+</div>
+                <div style="display: flex; gap: 12px; margin-top: 25px;">
+                    <button class="submit-btn" onclick="saveLevel()">💾 Save Level</button>
+                    <button class="btn-nav-outline" onclick="closeLevelEdit()" style="flex: 1;">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Profile Modal -->
+    <div class="modal-overlay" id="profile-modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-close" onclick="closeProfileModal()">&times;</div>
+            <div class="modal-body">
+                <div class="lb-profile-header" style="margin-bottom: 25px; padding-bottom: 25px; border-bottom: 1px solid var(--card-border);">
+                    <div class="lb-profile-avatar" id="profile-avatar-letter" style="width: 80px; height: 80px; font-size: 32px; margin: 0 auto 15px;">?</div>
+                    <div class="lb-profile-name" id="profile-name" style="font-size: 24px; font-weight: 800; margin-bottom: 5px;">Player</div>
+                    <div class="lb-profile-rank" id="profile-rank-text" style="color: var(--text-muted); font-size: 14px;">#? in global ranking</div>
+                </div>
+                <div class="lb-stats-grid" style="margin-bottom: 25px;">
+                    <div class="lb-stat-box">
+                        <div class="lb-stat-value" id="profile-total-score">0</div>
+                        <div class="lb-stat-label">Total Score</div>
+                    </div>
+                    <div class="lb-stat-box">
+                        <div class="lb-stat-value" id="profile-best-rank">—</div>
+                        <div class="lb-stat-label">Best Rank</div>
+                    </div>
+                    <div class="lb-stat-box">
+                        <div class="lb-stat-value" id="profile-completed">0</div>
+                        <div class="lb-stat-label">Completed</div>
+                    </div>
+                    <div class="lb-stat-box">
+                        <div class="lb-stat-value" id="profile-global-rank">0</div>
+                        <div class="lb-stat-label">Global Rank</div>
+                    </div>
+                </div>
+                <div class="lb-hardest" id="profile-hardest" style="cursor: pointer; margin-bottom: 25px;">
+                    <div class="lb-hardest-icon">🔥</div>
+                    <div class="lb-hardest-text">
+                        <div class="lb-hardest-label">Hardest Level</div>
+                        <div class="lb-hardest-name" id="profile-hardest-name">—</div>
+                        <div class="lb-hardest-rank" id="profile-hardest-rank"></div>
+                    </div>
+                    <span style="color:var(--accent-1);">›</span>
+                </div>
+                <div class="lb-completed-title" style="margin-bottom: 15px;">
+                    <span>⭐ Completed Levels</span>
+                    <span class="lb-completed-count" id="profile-completed-count">0</span>
+                </div>
+                <div class="lb-levels-grid" id="profile-levels-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Telegram Float -->
+    <a href="https://t.me/CHALLENGE_GRIND" target="_blank" class="tg-float-btn">
+        <svg class="tg-icon" viewBox="0 0 24 24">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+        <span class="tg-text">t.me/CHALLENGE_GRIND</span>
+    </a>
+<script>
+// ============================================
+// SUPABASE CONFIGURATION
+// ============================================
+const SUPABASE_URL = 'https://ddpvnotxxgqgbnofbrgn.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRkcHZub3R4eGdxZ2Jub2ZicmduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3MjM3MDgsImV4cCI6MjA5MzI5OTcwOH0.DYedtWU5VeyrRBwE9Jm-cSngjlaTarl2e-KG8jvTRJQ';
+
+let supabase = null;
+let currentUser = null;
+let currentPlayer = null;
+let allLevels = [];
+let challengeList = [];
+let spamList = [];
+let currentCategory = 'challenge';
+let currentData = [];
+let playerData = {};
+let selectedPlayer = null;
+let adminTab = 'records';
+let dbConnected = false;
+
+// ============================================
+// LOCALSTORAGE (только для сессии!)
+// ============================================
+const LS_KEYS = {
+    CURRENT_USER: 'cg_current_user'
+};
+
+function loadFromStorage(key, defaultValue) {
+    try {
+        const stored = localStorage.getItem(key);
+        if (stored) return JSON.parse(stored);
+    } catch (e) { console.warn('localStorage read error:', e); }
+    return defaultValue;
+}
+
+function saveToStorage(key, value) {
+    try {
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+    } catch (e) {
+        console.warn('localStorage write error:', e);
+        return false;
+    }
+}
+
+// ============================================
+// SUPABASE INIT
+// ============================================
+try {
+    if (typeof window.supabase !== 'undefined') {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('Supabase client created');
+        
+        // Test connection
+        supabase.from('levels').select('count', { count: 'exact', head: true }).then(({ data, error }) => {
+            if (!error) {
+                dbConnected = true;
+                updateDbStatus();
+                console.log('✅ Supabase connected, loading data...');
+                loadAllData();
+            } else {
+                dbConnected = false;
+                updateDbStatus();
+                console.error('❌ Supabase connection failed:', error.message, error);
+            }
+        }).catch(err => {
+            console.error('Supabase test error:', err);
+        });
+    } else {
+        console.error('window.supabase is undefined!');
+    }
+} catch(e) {
+    console.error('Supabase init error:', e);
+}
+
+function updateDbStatus() {
+    const statusEl = document.getElementById('db-status');
+    if (!statusEl) return;
+    if (dbConnected) {
+        statusEl.className = 'db-status connected';
+        statusEl.innerHTML = '<span>✅</span> Supabase Connected';
+    } else {
+        statusEl.className = 'db-status local';
+        statusEl.innerHTML = '<span>⚠️</span> Database Error — check console';
+    }
+}
+
+// ============================================
+// LOAD ALL DATA FROM SUPABASE
+// ============================================
+async function loadAllData() {
+    console.log('Loading all data from Supabase...');
+    await loadLevels();
+    await loadPlayers();
+    console.log('Data loaded. Challenge:', challengeList.length, 'Spam:', spamList.length, 'Players:', Object.keys(playerData).length);
+    
+    // Refresh current view if needed
+    if (document.getElementById('lists-view').style.display !== 'none') {
+        renderLevels(currentData, currentCategory);
+    }
+}
+
+async function loadLevels() {
+    if (!supabase) {
+        console.error('Supabase not initialized');
+        return;
+    }
+    try {
+        const { data, error } = await supabase
+            .from('levels')
+            .select('id, rank, name, publisher, verifier, level_id, image, video, points, category, first_victor')
+            .order('rank', { ascending: true });
+        
+        if (error) throw error;
+        
+        // Проверяем битые ранги
+        const broken = (data || []).filter(l => l.rank < 0 || l.rank > 100000);
+        if (broken.length > 0) {
+            console.error('Found broken ranks in loadLevels:', broken);
+            await emergencyFixRanks();
+            // Перезагружаем
+            const { data: fixedData } = await supabase
+                .from('levels')
+                .select('*')
+                .order('rank', { ascending: true });
+            allLevels = fixedData || [];
+        } else {
+            allLevels = data || [];
+        }
+        
+        challengeList = allLevels.filter(l => l.category === 'challenge');
+        spamList = allLevels.filter(l => l.category === 'spam');
+        
+        console.log('Levels loaded:', allLevels.length, 'Challenge:', challengeList.length, 'Spam:', spamList.length);
+        
+    } catch (err) {
+        console.error('Exception loading levels:', err);
+    }
+}
+
+async function loadPlayers() {
+    if (!supabase) return;
+    try {
+        console.log('Fetching players...');
+        const { data: players, error } = await supabase
+            .from('players')
+            .select('*')
+            .order('total_score', { ascending: false });
+        
+        if (error) {
+            console.error('Error loading players:', error);
+            throw error;
+        }
+        
+        console.log('Players loaded:', players?.length || 0);
+        playerData = {};
+        
+        for (const player of (players || [])) {
+            // ЗАГРУЖАЕМ ПЕРЕПИСЬ из player_completions + levels
+            const { data: completions, error: compError } = await supabase
+                .from('player_completions')
+                .select(`
+                    level_id,
+                    levels:level_id (
+                        id, rank, name, image, points, category
+                    )
+                `)
+                .eq('player_id', player.id);
+            
+            if (compError) {
+                console.error('Error loading completions for', player.username, compError);
+            }
+            
+            const levels = [];
+            let bestRank = 999;
+            let hardestName = '';
+            let totalScore = 0;
+            
+            for (const comp of (completions || [])) {
+                if (comp.levels && comp.levels.category === 'challenge') {
+                    let pts = parseFloat(comp.levels.points);
+                    if (isNaN(pts) || pts === 0) {
+                        pts = calculatePoints(comp.levels.rank);
+                    }
+                    
+                    levels.push({
+                        name: comp.levels.name,
+                        rank: comp.levels.rank,
+                        points: pts,
+                        img: comp.levels.image
+                    });
+                    
+                    totalScore += pts;
+                    
+                    if (comp.levels.rank < bestRank) {
+                        bestRank = comp.levels.rank;
+                        hardestName = comp.levels.name;
+                    }
+                }
+            }
+            
+            levels.sort((a, b) => a.rank - b.rank);
+            
+            // Используем hardest_level_name из БД если есть
+            let dbHardest = player.hardest_level_name;
+            let dbHardestRank = player.hardest_level_rank;
+            
+            playerData[player.username] = {
+                name: player.username,
+                totalScore: parseFloat(player.total_score) || totalScore,
+                bestRank: dbHardestRank || (bestRank === 999 ? 0 : bestRank),
+                hardestName: dbHardest || hardestName || '—',
+                count: player.levels_completed || levels.length,
+                levels: levels,
+                isBanned: player.is_banned,
+                isAdmin: player.is_admin,
+                id: player.id
+            };
+        }
+        
+        console.log('PlayerData built:', Object.keys(playerData).length);
+        
+    } catch (err) {
+        console.error('Exception loading players:', err);
+    }
+}
+
+// ============================================
+// POINTS FORMULA (fallback)
+// ============================================
+function calculatePoints(rank) {
+    return parseFloat((500 / Math.pow(rank, 0.8)).toFixed(2));
+}
+
+function fallbackLocalImg(imgElement, imgName, isModal) {
+    if (imgElement.dataset.fallback === "jpg") {
+        imgElement.dataset.fallback = "placeholder";
+        let w = isModal ? 1000 : 500;
+        let h = isModal ? 400 : 250;
+        imgElement.src = `https://placehold.co/${w}x${h}/1a1a24/555555?text=No+Image`;
+    } else if (imgElement.dataset.fallback !== "placeholder") {
+        imgElement.dataset.fallback = "jpg";
+        imgElement.src = `images/${imgName}.jpg`;
+    }
+}
+
+// ============================================
+// NAVIGATION & VIEWS
+// ============================================
+function navigateTo(view) {
+    // Check auth for submit
+    if (view === 'submit' && !currentUser) {
+        alert('Сначала войдите в аккаунт!');
+        openAuth('login');
+        return;
+    }
+    
+    // Check ban for submit
+    if (view === 'submit' && currentPlayer?.isBanned) {
+        alert('Ваш аккаунт заблокирован!');
+        return;
+    }
+
+    document.getElementById('home-view').style.display = view === 'home' ? 'block' : 'none';
+    document.getElementById('lists-view').style.display = view === 'lists' ? 'block' : 'none';
+    document.getElementById('leaderboard-view').style.display = view === 'leaderboard' ? 'block' : 'none';
+    document.getElementById('submit-view').style.display = view === 'submit' ? 'block' : 'none';
+    document.getElementById('admin-view').style.display = view === 'admin' ? 'block' : 'none';
+
+    document.getElementById('nav-lists').classList.toggle('active', view === 'lists');
+    document.getElementById('nav-leaderboard').classList.toggle('active', view === 'leaderboard');
+    document.getElementById('nav-submit').classList.toggle('active', view === 'submit');
+
+    if (view === 'lists') {
+        const firstCatBtn = document.querySelector('.category-btn');
+        switchCategory('challenge', firstCatBtn);
+    } else if (view === 'leaderboard') {
+        renderLeaderboard();
+    } else if (view === 'submit') {
+        populateSubmitLevels();
+    } else if (view === 'admin') {
+        updateDbStatus();
+        loadAdminPanel();
+    }
+}
+
+// ============================================
+// AUTH SYSTEM (Supabase only)
+// ============================================
+let authMode = 'login';
+
+function openAuth(mode) {
+    authMode = mode;
+    const overlay = document.getElementById('auth-overlay');
+    const title = document.getElementById('auth-title');
+    const subtitle = document.getElementById('auth-subtitle');
+    const btn = document.getElementById('auth-btn');
+    const switchText = document.getElementById('auth-switch');
+    const emailInput = document.getElementById('auth-email');
+
+    document.getElementById('auth-error').classList.remove('show');
+    document.getElementById('auth-username').value = '';
+    document.getElementById('auth-email').value = '';
+    document.getElementById('auth-password').value = '';
+
+    if (mode === 'login') {
+        title.innerText = 'Login';
+        subtitle.innerText = 'Войдите в свой аккаунт';
+        btn.innerText = 'Login';
+        emailInput.style.display = 'none';
+        switchText.innerHTML = `Нет аккаунта? <a onclick="switchAuthMode('register')">Зарегистрироваться</a>`;
+    } else {
+        title.innerText = 'Register';
+        subtitle.innerText = 'Создайте новый аккаунт';
+        btn.innerText = 'Register';
+        emailInput.style.display = 'block';
+        switchText.innerHTML = `Уже есть аккаунт? <a onclick="switchAuthMode('login')">Войти</a>`;
+    }
+
+    overlay.classList.add('active');
+}
+
+function closeAuth() {
+    document.getElementById('auth-overlay').classList.remove('active');
+}
+
+function switchAuthMode(mode) {
+    openAuth(mode);
+}
+
+async function handleAuth() {
+    const username = document.getElementById('auth-username').value.trim();
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value;
+    const errorEl = document.getElementById('auth-error');
+    const btn = document.getElementById('auth-btn');
+
+    if (!username || !password) {
+        errorEl.innerText = 'Введите username и password';
+        errorEl.classList.add('show');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = 'Загрузка...';
+
+    try {
+        if (authMode === 'login') {
+            // Ищем игрока в таблице players
+            const { data: playerData, error: playerError } = await supabase
+                .from('players')
+                .select('*')
+                .eq('username', username)
+                .single();
+            
+            if (playerError || !playerData) {
+                throw new Error('Игрок не найден');
+            }
+            
+            if (playerData.is_banned) {
+                throw new Error('Ваш аккаунт заблокирован. Причина: ' + (playerData.ban_reason || 'Не указана'));
+            }
+            
+            // Проверяем пароль из таблицы player_passwords
+            const { data: pwdData, error: pwdError } = await supabase
+                .from('player_passwords')
+                .select('password')
+                .eq('player_id', playerData.id)
+                .single();
+            
+            if (pwdError) {
+                console.error('Password query error:', pwdError);
+                throw new Error('Ошибка загрузки пароля: ' + pwdError.message);
+            }
+            
+            if (!pwdData) {
+                throw new Error('Пароль не найден в базе. Обратитесь к админу.');
+            }
+            
+            if (pwdData.password !== password) {
+                throw new Error('Неверный пароль');
+            }
+            
+            // Сохраняем реальный UUID из БД
+            currentUser = { 
+                username: username, 
+                id: playerData.id, // Реальный UUID!
+                isAdmin: playerData.is_admin 
+            };
+            currentPlayer = playerData;
+            saveToStorage(LS_KEYS.CURRENT_USER, currentUser);
+            updateUserMenu();
+            closeAuth();
+            await loadPlayers();
+            
+        } else {
+            // Регистрация
+            if (!email) {
+                errorEl.innerText = 'Введите email для регистрации';
+                errorEl.classList.add('show');
+                btn.disabled = false;
+                btn.innerText = 'Register';
+                return;
+            }
+            
+            const { data: existing } = await supabase
+                .from('players')
+                .select('username')
+                .eq('username', username)
+                .single();
+            
+            if (existing) {
+                throw new Error('Игрок с таким именем уже существует');
+            }
+            
+            const { data: newPlayer, error } = await supabase
+                .from('players')
+                .insert([{ 
+                    username: username, 
+                    display_name: username 
+                }])
+                .select()
+                .single();
+            
+            if (error) throw error;
+            
+            // Сохраняем пароль в БД (RLS должен быть отключен!)
+            const { error: pwdErr } = await supabase
+                .from('player_passwords')
+                .insert([{ player_id: newPlayer.id, password: password }]);
+            
+            if (pwdErr) {
+                // Если пароль не сохранился — удаляем игрока
+                await supabase.from('players').delete().eq('id', newPlayer.id);
+                throw new Error('Ошибка сохранения пароля: ' + pwdErr.message);
+            }
+            
+            currentUser = { 
+                username: username, 
+                id: newPlayer.id, // Реальный UUID!
+                isAdmin: false 
+            };
+            currentPlayer = newPlayer;
+            saveToStorage(LS_KEYS.CURRENT_USER, currentUser);
+            updateUserMenu();
+            closeAuth();
+            alert('Аккаунт создан! Теперь вы можете отправлять рекорды.');
+        }
+    } catch (err) {
+        errorEl.innerText = err.message || 'Ошибка авторизации';
+        errorEl.classList.add('show');
+    }
+
+    btn.disabled = false;
+    btn.innerText = authMode === 'login' ? 'Login' : 'Register';
+}
+
+function updateUserMenu() {
+    const menu = document.getElementById('user-menu');
+    const navAdmin = document.getElementById('nav-admin');
+    const notifBell = document.getElementById('notif-bell');
+    const isAdmin = currentUser && currentUser.isAdmin;
+
+    if (isAdmin) {
+        navAdmin.style.display = 'block';
+    } else {
+        navAdmin.style.display = 'none';
+    }
+
+    if (currentUser) {
+        const name = currentUser.username || 'User';
+        const initial = name.charAt(0).toUpperCase();
+        menu.innerHTML = `
+            <div class="user-avatar" title="${name}" onclick="openProfileModal()">${initial}</div>
+            <span style="color:var(--text-muted);font-size:14px;font-weight:600;">${name}</span>
+            <button class="btn-nav-outline" onclick="logout()">Logout</button>
+        `;
+        // Показываем колокольчик
+        if (notifBell) notifBell.style.display = 'block';
+        // Загружаем уведомления
+        loadNotifications();
+    } else {
+        menu.innerHTML = `
+            <button class="btn-nav" onclick="openAuth('login')">Login</button>
+            <button class="btn-nav-outline" onclick="openAuth('register')">Register</button>
+        `;
+        if (notifBell) {
+            notifBell.style.display = 'none';
+            document.getElementById('notif-dropdown')?.classList.remove('active');
+        }
+    }
+}
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+
+async function loadNotifications() {
+    if (!currentUser || !supabase) return;
+    
+    try {
+        const { data: notifs, error } = await supabase
+            .from('notifications')
+            .select('*')
+            .eq('player_id', currentUser.id)
+            .eq('is_read', false)
+            .order('created_at', { ascending: false })
+            .limit(20);
+        
+        if (error) throw error;
+        
+        const count = notifs?.length || 0;
+        const countEl = document.getElementById('notif-count');
+        const bell = document.getElementById('notif-bell');
+        
+        if (countEl) {
+            countEl.innerText = count > 9 ? '9+' : count;
+            countEl.style.display = count > 0 ? 'block' : 'none';
+        }
+        
+        if (bell) {
+            bell.classList.toggle('has-unread', count > 0);
+        }
+        
+        renderNotificationsList(notifs || []);
+        
+    } catch (err) {
+        console.error('Error loading notifications:', err);
+    }
+}
+
+function renderNotificationsList(notifs) {
+    const list = document.getElementById('notif-list');
+    if (!list) return;
+    
+    if (notifs.length === 0) {
+        list.innerHTML = '<div class="notif-empty">No new notifications</div>';
+        return;
+    }
+    
+    list.innerHTML = notifs.map(n => `
+        <div class="notif-item ${n.is_read ? 'read' : 'unread'}" onclick="handleNotifClick('${n.id}', '${n.record_id}')">
+            <div class="notif-icon">${n.type === 'record_approved' ? '✅' : '❌'}</div>
+            <div class="notif-content">
+                <div class="notif-text">${n.message}</div>
+                <div class="notif-time">${new Date(n.created_at).toLocaleDateString()}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function toggleNotifications() {
+    const dropdown = document.getElementById('notif-dropdown');
+    dropdown.classList.toggle('active');
+    
+    // Если открыли — помечаем прочитанными
+    if (dropdown.classList.contains('active')) {
+        markAllRead();
+    }
+}
+
+async function markAllRead() {
+    if (!currentUser || !supabase) return;
+    
+    try {
+        await supabase
+            .from('notifications')
+            .update({ is_read: true })
+            .eq('player_id', currentUser.id)
+            .eq('is_read', false);
+        
+        const countEl = document.getElementById('notif-count');
+        const bell = document.getElementById('notif-bell');
+        if (countEl) countEl.style.display = 'none';
+        if (bell) bell.classList.remove('has-unread');
+        
+        renderNotificationsList([]);
+        
+    } catch (err) {
+        console.error('Error marking read:', err);
+    }
+}
+
+function handleNotifClick(notifId, recordId) {
+    // Закрываем дропдаун
+    document.getElementById('notif-dropdown')?.classList.remove('active');
+    // Переходим к рекорду или профилю
+    navigateTo('submit'); // или можно открыть модалку рекорда
+}
+
+function logout() {
+    currentUser = null;
+    currentPlayer = null;
+    localStorage.removeItem(LS_KEYS.CURRENT_USER);
+    updateUserMenu();
+    navigateTo('home');
+}
+
+// Restore session
+const storedUser = loadFromStorage(LS_KEYS.CURRENT_USER, null);
+if (storedUser) {
+    currentUser = storedUser;
+    updateUserMenu();
+}
+
+// ============================================
+// PROFILE MODAL
+// ============================================
+function openProfileModal(targetUsername = null) {
+    const username = targetUsername || (currentUser ? currentUser.username : null);
+    if (!username) return;
+    
+    // Если данные ещё не загружены
+    if (!playerData[username]) {
+        loadPlayers().then(() => openProfileModal(username));
+        return;
+    }
+    
+    const player = playerData[username];
+    const isOwnProfile = currentUser && currentUser.username === username;
+    
+    // Calculate global rank
+    const sortedPlayers = Object.values(playerData).sort((a, b) => b.totalScore - a.totalScore);
+    const globalRank = sortedPlayers.findIndex(p => p.name === username) + 1;
+    
+    document.getElementById('profile-avatar-letter').innerText = player.name.charAt(0).toUpperCase();
+    
+    // ЗАМЕНЕННЫЙ БЛОК:
+    const roleBadge = getRoleBadge(username);
+    document.getElementById('profile-name').innerHTML = `${player.name} ${roleBadge}`;
+    
+    document.getElementById('profile-rank-text').innerText = `#${globalRank} in global ranking`;
+    document.getElementById('profile-total-score').innerText = player.totalScore.toFixed(2);
+    document.getElementById('profile-best-rank').innerText = player.bestRank ? `#${player.bestRank}` : '—';
+    document.getElementById('profile-completed').innerText = player.count;
+    document.getElementById('profile-global-rank').innerText = globalRank;
+    document.getElementById('profile-hardest-name').innerText = player.hardestName || '—';
+    document.getElementById('profile-hardest-rank').innerText = player.bestRank ? `Rank #${player.bestRank}` : '';
+    document.getElementById('profile-completed-count').innerText = player.count;
+    
+    // Загружаем рекорды игрока (все — approved, pending, rejected)
+    loadPlayerRecordsForProfile(player.id, isOwnProfile);
+    
+    document.getElementById('profile-hardest').onclick = () => {
+        if (player.hardestName && player.hardestName !== '—') {
+            openLevelByName(player.hardestName);
+            closeProfileModal();
+        }
+    };
+    
+    document.getElementById('profile-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+async function loadPlayerRecordsForProfile(playerId, isOwnProfile) {
+    const grid = document.getElementById('profile-levels-grid');
+    if (!grid) return;
+    
+    grid.innerHTML = '<div style="color: var(--text-dim); font-size: 14px;">Loading records...</div>';
+    
+    try {
+        const { data: records, error } = await supabase
+            .from('records')
+            .select(`
+                id,
+                level_id,
+                video_url,
+                status,
+                submitted_at,
+                levels:level_id (id, name, rank, points, category)
+            `)
+            .eq('player_id', playerId)
+            .order('submitted_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        if (!records || records.length === 0) {
+            grid.innerHTML = '<div style="color: var(--text-dim); font-size: 14px;">Нет отправленных рекордов</div>';
+            return;
+        }
+        
+        // Показываем все рекорды (включая pending/rejected для своего профиля)
+        const displayRecords = isOwnProfile ? records : records.filter(r => r.status === 'approved');
+        
+        grid.innerHTML = displayRecords.map(r => {
+            const statusColor = r.status === 'approved' ? 'var(--success)' : 
+                               r.status === 'rejected' ? 'var(--error)' : 'var(--warning)';
+            const statusText = r.status === 'approved' ? '✓' : 
+                              r.status === 'rejected' ? '✕' : '⏳';
+            
+            return `
+                <div class="lb-level-tag" style="border-color: ${statusColor}; position: relative;" 
+                     onclick="${r.status === 'approved' ? `openLevelByName('${r.levels.name.replace(/'/g, "\\'")}'); closeProfileModal();` : ''}"
+                     title="Status: ${r.status}">
+                    <span style="color: ${statusColor}; font-weight: 800; margin-right: 4px;">${statusText}</span>
+                    <span class="tag-rank">#${r.levels.rank}</span>${r.levels.name}
+                    ${r.video_url ? `<a href="${r.video_url}" target="_blank" style="margin-left: 6px; color: var(--accent-2);">🎬</a>` : ''}
+                </div>
+            `;
+        }).join('');
+        
+    } catch (err) {
+        grid.innerHTML = `<div style="color: var(--error); font-size: 14px;">Error: ${err.message}</div>`;
+    }
+}
+
+function closeProfileModal() {
+    document.getElementById('profile-modal').classList.remove('active');
+    setTimeout(() => { document.body.style.overflow = 'auto'; }, 300);
+}
+
+// ============================================
+// LEVELS RENDERING
+// ============================================
+function renderLevels(data, category) {
+    const listContainer = document.getElementById('level-list');
+    listContainer.innerHTML = '';
+    document.getElementById('level-counter').querySelector('span').innerText = data.length;
+
+    if (data.length === 0) {
+        listContainer.innerHTML = '<div class="empty-state" style="margin-top: 20px; color: var(--text-dim); text-align: center; padding: 40px;">Ничего не найдено</div>';
+        return;
+    }
+
+    data.forEach((level, index) => {
+        const card = document.createElement('div');
+        card.className = 'level-card';
+        card.style.animationDelay = (index * 0.03) + 's';
+        
+        // ГЛАВНЫЙ ФИКС: привязываем level напрямую через замыкание
+        card.onclick = function(e) {
+            // Не открывать модалку если кликнули по play-кнопке
+            if (e.target.closest('.play-btn-overlay')) return;
+            openModal(level, category);
+        };
+
+        let pointsHtml = '';
+        if (category !== 'spam') {
+            let levelPoints = parseFloat(level.points);
+            if (isNaN(levelPoints) || levelPoints === 0) {
+                levelPoints = calculatePoints(level.rank);
+            }
+            pointsHtml = `<div class="level-points"><div class="points-value">${levelPoints.toFixed(2)}</div><div class="points-label">Points</div></div>`;
+        }
+
+        let playBtnHtml = level.video 
+            ? `<div class="play-btn-overlay" onclick="event.stopPropagation(); window.open('${level.video}', '_blank');"><div class="play-icon"></div></div>` 
+            : '';
+
+        const imgName = level.image || 'placeholder';
+        
+        card.innerHTML = `
+            <div class="level-image">
+                <img src="images/${imgName}.png" alt="${level.name}" data-fallback="" onload="this.classList.add('loaded')" onerror="fallbackLocalImg(this, '${imgName}', false)">
+                <div class="img-loader"></div>
+                ${playBtnHtml}
+            </div>
+            <div class="level-info">
+                <div class="level-title"><span class="rank">#${level.rank}</span> ${level.name}</div>
+                <div class="level-details">
+                    <div class="detail-item"><span class="label">Publisher:</span> ${level.publisher}</div>
+                    <div class="detail-item"><span class="label">Verifier:</span> ${level.verifier}</div>
+                    <div class="detail-item"><span class="label">ID:</span> ${level.level_id}</div>
+                </div>
+            </div>
+            ${pointsHtml}
+        `;
+        listContainer.appendChild(card);
+    });
+}
+
+function switchCategory(category, btnElement) {
+    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+    if(btnElement) btnElement.classList.add('active');
+    document.getElementById('search-input').value = '';
+
+    const title = document.getElementById('page-title-text');
+    if (category === 'challenge') {
+        title.innerText = 'Challenge List';
+        currentCategory = 'challenge';
+        currentData = challengeList;
+        renderLevels(challengeList, 'challenge');
+    } else if (category === 'spam') {
+        title.innerText = 'Spam Challenge List';
+        currentCategory = 'spam';
+        currentData = spamList;
+        renderLevels(spamList, 'spam');
+    }
+}
+
+function filterLevels(query) {
+    const lower = query.toLowerCase().trim();
+    if (!lower) {
+        renderLevels(currentData, currentCategory);
+        return;
+    }
+    const filtered = currentData.filter(level => 
+        level.name.toLowerCase().includes(lower) ||
+        level.publisher.toLowerCase().includes(lower) ||
+        level.verifier.toLowerCase().includes(lower) ||
+        level.level_id.includes(lower)
+    );
+    renderLevels(filtered, currentCategory);
+}
+
+// ============================================
+// LEVEL MODAL
+// ============================================
+function openModal(level, category) {
+    if (!level) {
+        console.error('openModal called with null level');
+        return;
+    }
+    
+    console.log('Opening modal for:', level.name, 'category:', category);
+    
+    const modal = document.getElementById('level-modal');
+    if (!modal) {
+        console.error('Modal element not found!');
+        return;
+    }
+    
+    document.getElementById('modal-title').innerText = `#${level.rank} ${level.name}`;
+    document.getElementById('modal-pub').innerText = level.publisher || '—';
+    document.getElementById('modal-ver').innerText = level.verifier || '—';
+    document.getElementById('modal-id').innerText = level.level_id || '—';
+    document.getElementById('modal-cat').innerText = category === 'spam' ? 'Spam Challenge' : 'Challenge';
+
+    const ptsEl = document.getElementById('modal-pts');
+    if (category === 'spam') {
+        ptsEl.innerText = '—';
+    } else {
+        let pts = parseFloat(level.points);
+        if (isNaN(pts) || pts === 0) pts = calculatePoints(level.rank);
+        ptsEl.innerText = pts.toFixed(2);
+    }
+
+    const fvCard = document.getElementById('modal-fv-card');
+    if (level.first_victor) {
+        fvCard.style.display = 'block';
+        document.getElementById('modal-fv').innerText = level.first_victor;
+    } else {
+        fvCard.style.display = 'none';
+    }
+
+    const videoContainer = document.getElementById('modal-video-container');
+    const videoIframe = document.getElementById('modal-video');
+    if (level.video) {
+        videoContainer.style.display = 'block';
+        const embedUrl = getYoutubeEmbedUrl(level.video);
+        videoIframe.src = embedUrl;
+    } else {
+        videoContainer.style.display = 'none';
+        videoIframe.src = '';
+    }
+
+    const imgEl = document.getElementById('modal-img');
+    const imgName = level.image || 'placeholder';
+    imgEl.dataset.fallback = "";
+    imgEl.src = `images/${imgName}.png`;
+    imgEl.onerror = function() { fallbackLocalImg(this, imgName, true); };
+
+    // Records section
+    const recordsContainer = document.getElementById('modal-records-list');
+    if (category === 'spam') {
+        recordsContainer.innerHTML = '<div style="color: var(--text-dim); text-align: center; padding: 30px;">Для спам-уровней рекорды не ведутся</div>';
+    } else {
+        recordsContainer.innerHTML = '<div style="color: var(--text-dim); text-align: center; padding: 20px;">Загрузка рекордов...</div>';
+        renderLevelRecords(level.id);
+    }
+
+    // Reset copy button
+    const copyBtn = document.querySelector('#modal-id')?.closest('.modal-stat-card')?.querySelector('.copy-btn');
+    if (copyBtn) {
+        copyBtn.classList.remove('copied');
+        copyBtn.innerText = 'Копировать';
+    }
+
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function getYoutubeEmbedUrl(url) {
+    if (!url) return '';
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    if (match && match[2].length === 11) {
+        return `https://www.youtube.com/embed/${match[2]}`;
+    }
+    return url;
+}
+
+function closeModal() {
+    document.getElementById('level-modal').classList.remove('active');
+    document.getElementById('modal-video').src = '';
+    setTimeout(() => { document.body.style.overflow = 'auto'; }, 300);
+}
+
+document.getElementById('level-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+function copyID() {
+    const id = document.getElementById('modal-id').innerText;
+    navigator.clipboard.writeText(id).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.classList.add('copied');
+        btn.innerText = 'Скопировано!';
+        setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerText = 'Копировать';
+        }, 2000);
+    });
+}
+
+async function renderLevelRecords(levelId) {
+    const container = document.getElementById('modal-records-list');
+    container.innerHTML = '<div style="color: var(--text-dim); text-align: center; padding: 20px;">Загрузка рекордов...</div>';
+    
+    if (!supabase) {
+        container.innerHTML = '<div style="color: var(--error); text-align: center; padding: 30px;">❌ Supabase не подключен</div>';
+        return;
+    }
+    
+    try {
+        const { data: records, error } = await supabase
+            .from('records')
+            .select('id, player_id, video_url, status, submitted_at')
+            .eq('level_id', levelId)
+            .eq('status', 'approved') // Только approved!
+            .order('submitted_at', { ascending: true });
+        
+        if (error) throw error;
+        
+        if (!records || records.length === 0) {
+            container.innerHTML = '<div style="color: var(--text-dim); text-align: center; padding: 30px;">Пока нет рекордов на этом уровне</div>';
+            return;
+        }
+        
+        // Загружаем имена игроков
+        const playerIds = [...new Set(records.map(r => r.player_id))];
+        const { data: players } = await supabase
+            .from('players')
+            .select('id, username')
+            .in('id', playerIds);
+        
+        const playerMap = {};
+        if (players) players.forEach(p => playerMap[p.id] = p.username);
+        
+        container.innerHTML = records.map((r, i) => {
+            // Если видео — заглушка, показываем как "TG Channel"
+            const isPlaceholder = r.video_url === 'https://t.me/CHALLENGE_GRIND' || r.video_url === 'https://t.me/challenge_grind';
+            const videoLabel = isPlaceholder ? '📱 TG Channel' : '🎬 Видео';
+            const videoUrl = isPlaceholder ? 'https://t.me/CHALLENGE_GRIND' : r.video_url;
+            
+            return `
+                <div class="record-item">
+                    <span class="record-rank">#${i + 1}</span>
+                    <span class="record-player">${playerMap[r.player_id] || 'Unknown'}</span>
+                    <a href="${videoUrl}" target="_blank" class="record-video">${videoLabel}</a>
+                    <span class="record-status status-approved">Approved</span>
+                </div>
+            `;
+        }).join('');
+        
+    } catch (err) {
+        console.error('Error loading records:', err);
+        container.innerHTML = `<div style="color: var(--error); text-align: center; padding: 30px;">Ошибка: ${err.message}</div>`;
+    }
+}
+
+// ============================================
+// LEADERBOARD
+// ============================================
+function renderLeaderboard() {
+    if (Object.keys(playerData).length === 0) {
+        console.log('No player data yet, retrying...');
+        setTimeout(renderLeaderboard, 500);
+        return;
+    }
+    
+    const sortedPlayers = Object.values(playerData).sort((a, b) => {
+        if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+        return a.bestRank - b.bestRank;
+    });
+
+    const listContainer = document.getElementById('lb-players-list');
+    listContainer.innerHTML = '';
+
+    sortedPlayers.forEach((player, index) => {
+        const item = document.createElement('div');
+        item.className = 'lb-player-item';
+        item.dataset.player = player.name;
+        item.onclick = () => selectPlayer(player.name, sortedPlayers);
+
+        // Значок роли
+        const roleBadge = getRoleBadge(player.name);
+        
+        item.innerHTML = `
+            <span class="lb-rank">#${index + 1}</span>
+            <span class="lb-name">${player.name} ${roleBadge}</span>
+            <span class="lb-score">${player.totalScore.toFixed(2)}</span>
+        `;
+        listContainer.appendChild(item);
+    });
+
+    if (sortedPlayers.length > 0) {
+        selectPlayer(sortedPlayers[0].name, sortedPlayers);
+    }
+}
+
+function getRoleBadge(username) {
+    const roles = {
+        'ItzTheRealMint': '<span style="background: linear-gradient(135deg, #ff9a00, #ffce00); color: #000; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; margin-left: 6px;">C</span>',
+        'MezZzGD': '<span style="background: linear-gradient(135deg, #ef4444, #f59e0b); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; margin-left: 6px;">DEV</span>',
+        'GMDTETO': '<span style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; margin-left: 6px;">A</span>'
+    };
+    return roles[username] || '';
+}
+
+function selectPlayer(playerName, allPlayers) {
+    document.querySelectorAll('.lb-player-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.player === playerName);
+    });
+
+    const player = playerData[playerName];
+    if (!player) return;
+
+    const rank = allPlayers.findIndex(p => p.name === playerName) + 1;
+    const initial = player.name.charAt(0).toUpperCase();
+    const roleBadge = getRoleBadge(player.name);
+
+    const panel = document.getElementById('lb-info-panel');
+    panel.innerHTML = `
+        <div class="lb-profile-header" style="position: relative;">
+            <div style="position: absolute; top: 0; right: 0;">
+                <button class="btn-nav" onclick="openProfileModal('${player.name}')" style="padding: 8px 16px; font-size: 12px;">
+                    👤 Full Profile
+                </button>
+            </div>
+            <div class="lb-profile-avatar">${initial}</div>
+            <div class="lb-profile-name">${player.name} ${roleBadge}</div>
+            <div class="lb-profile-rank">#${rank} in global ranking</div>
+        </div>
+        <div class="lb-stats-grid">
+            <div class="lb-stat-box">
+                <div class="lb-stat-value">${player.totalScore.toFixed(2)}</div>
+                <div class="lb-stat-label">Total Score</div>
+            </div>
+            <div class="lb-stat-box">
+                <div class="lb-stat-value">#${player.bestRank || '—'}</div>
+                <div class="lb-stat-label">Best Rank</div>
+            </div>
+            <div class="lb-stat-box">
+                <div class="lb-stat-value">${player.count}</div>
+                <div class="lb-stat-label">Completed</div>
+            </div>
+            <div class="lb-stat-box">
+                <div class="lb-stat-value">${rank}</div>
+                <div class="lb-stat-label">Global Rank</div>
+            </div>
+        </div>
+        <div class="lb-hardest" onclick="openLevelByName('${player.hardestName}')">
+            <div class="lb-hardest-icon">🔥</div>
+            <div class="lb-hardest-text">
+                <div class="lb-hardest-label">Hardest Level</div>
+                <div class="lb-hardest-name">${player.hardestName}</div>
+                <div class="lb-hardest-rank">Rank #${player.bestRank}</div>
+            </div>
+            <span style="color:var(--accent-1);">›</span>
+        </div>
+        <div class="lb-completed-title">
+            <span>⭐ Completed Levels</span>
+            <span class="lb-completed-count">${player.count}</span>
+        </div>
+        <div class="lb-levels-grid">
+            ${player.levels.map(l => `
+                <div class="lb-level-tag" onclick="openLevelByName('${l.name}')">
+                    <span class="tag-rank">#${l.rank}</span>${l.name}
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function openLevelByName(name) {
+    const level = allLevels.find(l => l.name === name);
+    if (level) {
+        openModal(level, level.category);
+    }
+}
+
+// ============================================
+// SUBMIT RECORD
+// ============================================
+function populateSubmitLevels() {
+    const select = document.getElementById('submit-level');
+    select.innerHTML = '<option value="">Выберите уровень...</option>';
+
+    challengeList.forEach(level => {
+        const option = document.createElement('option');
+        option.value = level.id;
+        option.textContent = `#${level.rank} ${level.name}`;
+        select.appendChild(option);
+    });
+
+    spamList.forEach(level => {
+        const option = document.createElement('option');
+        option.value = level.id;
+        option.textContent = `[SPAM] #${level.rank} ${level.name}`;
+        select.appendChild(option);
+    });
+}
+
+async function submitRecord() {
+    const levelId = document.getElementById('submit-level').value;
+    const videoUrl = document.getElementById('submit-video').value.trim();
+    const notes = document.getElementById('submit-notes').value.trim();
+    const agreed = document.getElementById('submit-agree').checked;
+    const btn = document.getElementById('submit-btn');
+    const successEl = document.getElementById('submit-success');
+
+    if (!currentUser) {
+        alert('Сначала войдите в аккаунт!');
+        openAuth('login');
+        return;
+    }
+
+    if (!levelId) { alert('Выберите уровень!'); return; }
+    if (!videoUrl) { alert('Введите ссылку на видео!'); return; }
+    if (!agreed) { alert('Примите правила отправки!'); return; }
+
+    btn.disabled = true;
+    btn.innerText = 'Отправка...';
+
+    try {
+        // Получаем реальный UUID игрока из БД
+        const { data: player, error: playerError } = await supabase
+            .from('players')
+            .select('id')
+            .eq('username', currentUser.username)
+            .single();
+        
+        if (playerError || !player) throw new Error('Игрок не найден в БД');
+
+        const { data, error } = await supabase
+            .from('records')
+            .insert([{
+                player_id: player.id, // Используем реальный UUID
+                level_id: parseInt(levelId),
+                video_url: videoUrl,
+                notes: notes,
+                status: 'pending'
+            }]);
+        
+        if (error) throw error;
+
+        successEl.classList.add('show');
+        document.getElementById('submit-level').value = '';
+        document.getElementById('submit-video').value = '';
+        document.getElementById('submit-notes').value = '';
+        document.getElementById('submit-agree').checked = false;
+
+        setTimeout(() => { successEl.classList.remove('show'); }, 5000);
+
+    } catch (err) {
+        alert('Ошибка отправки: ' + (err.message || 'Неизвестная ошибка'));
+    }
+
+    btn.disabled = false;
+    btn.innerText = 'Отправить Рекорд';
+}
+
+// ============================================
+// ADMIN PANEL
+// ============================================
+let editingLevelId = null;
+
+function isAdmin() {
+    if (!currentUser) return false;
+    const adminUsers = ['ItzTheRealMint', 'MezZzGD', 'GMDTETO'];
+    return adminUsers.includes(currentUser.username) || currentUser.isAdmin;
+}
+
+async function loadAdminPanel() {
+    if (!isAdmin()) {
+        alert('Access denied!');
+        navigateTo('home');
+        return;
+    }
+
+    // Принудительно загружаем данные если их нет
+    if (allLevels.length === 0) {
+        console.log('No levels loaded yet, loading...');
+        await loadLevels();
+    }
+    if (Object.keys(playerData).length === 0) {
+        console.log('No players loaded yet, loading...');
+        await loadPlayers();
+    }
+    
+    if (adminTab === 'records') loadAdminRecords();
+    else if (adminTab === 'levels') loadAdminLevels();
+    else if (adminTab === 'players') loadAdminPlayers();
+}
+
+function switchAdminTab(tab) {
+    adminTab = tab;
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+
+    document.getElementById('admin-records-tab').style.display = tab === 'records' ? 'block' : 'none';
+    document.getElementById('admin-levels-tab').style.display = tab === 'levels' ? 'block' : 'none';
+    document.getElementById('admin-players-tab').style.display = tab === 'players' ? 'block' : 'none';
+    document.getElementById('admin-search-tab').style.display = tab === 'search' ? 'block' : 'none';
+
+    if (tab === 'records') loadAdminRecords();
+    else if (tab === 'levels') loadAdminLevels();
+    else if (tab === 'players') loadAdminPlayers();
+    else if (tab === 'search') loadSearchTab();
+}
+
+// ============================================
+// SEARCH RECORDS TAB
+// ============================================
+
+function loadSearchTab() {
+    const container = document.getElementById('search-results');
+    if (!container.innerHTML.includes('record-item')) {
+        container.innerHTML = '<div class="admin-empty">Enter player name or level name to search</div>';
+    }
+}
+
+function clearSearch() {
+    document.getElementById('search-player-input').value = '';
+    document.getElementById('search-level-input').value = '';
+    document.getElementById('search-results').innerHTML = '<div class="admin-empty">Search cleared</div>';
+}
+
+async function loadAllRecords() {
+    const container = document.getElementById('search-results');
+    container.innerHTML = '<div class="admin-empty">Loading all records...</div>';
+    
+    try {
+        const { data: records, error } = await supabase
+            .from('records')
+            .select(`
+                id,
+                video_url,
+                notes,
+                status,
+                submitted_at,
+                reviewed_at,
+                players:player_id (id, username),
+                levels:level_id (id, name, rank, category)
+            `)
+            .order('submitted_at', { ascending: false })
+            .limit(100);
+        
+        if (error) throw error;
+        renderSearchResults(records || [], 'All Records (last 100)');
+        
+    } catch (err) {
+        container.innerHTML = `<div class="admin-empty" style="color: var(--error);">Error: ${err.message}</div>`;
+    }
+}
+
+async function searchByPlayer(query) {
+    if (!query.trim()) return;
+    
+    const container = document.getElementById('search-results');
+    container.innerHTML = '<div class="admin-empty">Searching...</div>';
+    
+    try {
+        // Ищем игрока
+        const { data: players } = await supabase
+            .from('players')
+            .select('id, username')
+            .ilike('username', '%' + query.trim() + '%')
+            .limit(5);
+        
+        if (!players || players.length === 0) {
+            container.innerHTML = '<div class="admin-empty">No players found</div>';
+            return;
+        }
+        
+        const playerIds = players.map(p => p.id);
+        
+        // Ищем рекорды этих игроков
+        const { data: records, error } = await supabase
+            .from('records')
+            .select(`
+                id,
+                video_url,
+                notes,
+                status,
+                submitted_at,
+                reviewed_at,
+                players:player_id (id, username),
+                levels:level_id (id, name, rank, category)
+            `)
+            .in('player_id', playerIds)
+            .order('submitted_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        renderSearchResults(records || [], `Records for player: "${query.trim()}"`);
+        
+    } catch (err) {
+        container.innerHTML = `<div class="admin-empty" style="color: var(--error);">Error: ${err.message}</div>`;
+    }
+}
+
+async function searchByLevel(query) {
+    if (!query.trim()) return;
+    
+    const container = document.getElementById('search-results');
+    container.innerHTML = '<div class="admin-empty">Searching...</div>';
+    
+    try {
+        // Ищем уровни
+        const { data: levels } = await supabase
+            .from('levels')
+            .select('id, name, rank')
+            .ilike('name', '%' + query.trim() + '%')
+            .limit(10);
+        
+        if (!levels || levels.length === 0) {
+            container.innerHTML = '<div class="admin-empty">No levels found</div>';
+            return;
+        }
+        
+        const levelIds = levels.map(l => l.id);
+        
+        // Ищем рекорды на этих уровнях
+        const { data: records, error } = await supabase
+            .from('records')
+            .select(`
+                id,
+                video_url,
+                notes,
+                status,
+                submitted_at,
+                reviewed_at,
+                players:player_id (id, username),
+                levels:level_id (id, name, rank, category)
+            `)
+            .in('level_id', levelIds)
+            .order('submitted_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        renderSearchResults(records || [], `Records for level: "${query.trim()}"`);
+        
+    } catch (err) {
+        container.innerHTML = `<div class="admin-empty" style="color: var(--error);">Error: ${err.message}</div>`;
+    }
+}
+
+function renderSearchResults(records, title) {
+    const container = document.getElementById('search-results');
+    
+    if (!records || records.length === 0) {
+        container.innerHTML = '<div class="admin-empty">No records found</div>';
+        return;
+    }
+    
+    let html = `<div style="margin-bottom: 15px; font-weight: 700; color: var(--accent-2);">${title} (${records.length})</div>`;
+    
+    html += `<table class="admin-table">
+        <thead>
+            <tr>
+                <th>Player</th>
+                <th>Level</th>
+                <th>Status</th>
+                <th>Video</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>`;
+    
+    records.forEach(r => {
+        const statusClass = r.status === 'approved' ? 'status-approved' : 
+                           r.status === 'rejected' ? 'status-rejected' : 'status-pending';
+        const levelName = r.levels ? `#${r.levels.rank} ${r.levels.name}` : 'Unknown';
+        const playerName = r.players ? r.players.username : 'Unknown';
+        const isPlaceholder = r.video_url && (r.video_url.includes('t.me/CHALLENGE_GRIND') || r.video_url.includes('t.me/challenge_grind'));
+        
+        html += `
+            <tr>
+                <td><strong>${playerName}</strong></td>
+                <td>${levelName}</td>
+                <td><span class="status-badge ${statusClass}">${r.status}</span></td>
+                <td>
+                    ${r.video_url 
+                        ? `<a href="${r.video_url}" target="_blank">${isPlaceholder ? '📱 TG' : '🎬 Video'}</a>` 
+                        : '—'}
+                </td>
+                <td>${new Date(r.submitted_at).toLocaleDateString()}</td>
+                <td>
+                    <div class="admin-actions">
+                        ${r.status !== 'approved' ? `<button class="btn-icon approve" onclick="updateRecordStatus('${r.id}', 'approved')" title="Approve">✓</button>` : ''}
+                        ${r.status !== 'rejected' ? `<button class="btn-icon reject" onclick="updateRecordStatus('${r.id}', 'rejected')" title="Reject">✕</button>` : ''}
+                        <button class="btn-icon edit" onclick="editRecordUrl('${r.id}')" title="Edit URL">🔗</button>
+                        <button class="btn-icon delete" onclick="deleteRecord('${r.id}')" title="Delete">🗑</button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+// --- Records Tab ---
+async function loadAdminRecords() {
+    const container = document.getElementById('admin-records-list');
+    
+    try {
+        const { data: records, error } = await supabase
+            .from('records')
+            .select(`
+                id,
+                video_url,
+                status,
+                submitted_at,
+                players:player_id (username),
+                levels:level_id (rank, name)
+            `)
+            .order('submitted_at', { ascending: false });
+        
+        if (error) throw error;
+
+        if (!records || records.length === 0) {
+            container.innerHTML = '<div class="admin-empty">No records found</div>';
+            return;
+        }
+
+        let html = `<table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Player</th>
+                    <th>Level</th>
+                    <th>Video</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+        records.forEach(record => {
+            const statusClass = record.status === 'approved' ? 'status-approved' : 
+                               record.status === 'rejected' ? 'status-rejected' : 'status-pending';
+            html += `
+                <tr>
+                    <td>${record.players?.username || 'Unknown'}</td>
+                    <td>#${record.levels?.rank || '?'} ${record.levels?.name || 'Unknown'}</td>
+                    <td><a href="${record.video_url}" target="_blank">Link</a></td>
+                    <td><span class="status-badge ${statusClass}">${record.status}</span></td>
+                    <td>${new Date(record.submitted_at).toLocaleDateString()}</td>
+                    <td>
+                        <div class="admin-actions">
+                            ${record.status !== 'approved' ? `<button class="btn-icon approve" onclick="updateRecordStatus('${record.id}', 'approved')" title="Approve">✓</button>` : ''}
+                            ${record.status !== 'rejected' ? `<button class="btn-icon reject" onclick="updateRecordStatus('${record.id}', 'rejected')" title="Reject">✕</button>` : ''}
+                            <button class="btn-icon delete" onclick="deleteRecord('${record.id}')" title="Delete">🗑</button>
+                            <button class="btn-icon edit" onclick="editRecordUrl('${record.id}')" title="Edit URL">🔗</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    } catch (err) {
+        console.error('Error loading records:', err);
+        container.innerHTML = '<div class="admin-empty">Error loading records: ' + err.message + '</div>';
+    }
+}
+
+async function deletePlayer(playerId, username) {
+    if (!confirm(`DELETE player ${username}? This will delete ALL their records and completions!`)) return;
+    
+    try {
+        // Удаляем игрока (каскадно удалит records, completions, notifications, passwords)
+        const { error } = await supabase
+            .from('players')
+            .delete()
+            .eq('id', playerId);
+        
+        if (error) throw error;
+        
+        // Удаляем из локального кэша
+        delete playerData[username];
+        allPlayersCache = allPlayersCache.filter(p => p.id !== playerId);
+        
+        alert(`Player ${username} deleted!`);
+        renderPlayersList(allPlayersCache);
+        
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+async function editRecordUrl(recordId) {
+    const newUrl = prompt('Enter new video URL:');
+    if (!newUrl) return;
+    
+    try {
+        const { error } = await supabase
+            .from('records')
+            .update({ video_url: newUrl })
+            .eq('id', recordId);
+        
+        if (error) throw error;
+        loadAdminRecords();
+        alert('URL updated!');
+        
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+async function updateRecordStatus(recordId, status) {
+    try {
+        const { error } = await supabase
+            .from('records')
+            .update({ 
+                status: status, 
+                reviewed_at: new Date().toISOString(),
+                reviewed_by: currentUser.id
+            })
+            .eq('id', recordId);
+        
+        if (error) throw error;
+        
+        // Триггер в БД автоматически:
+        // 1. Добавит/удалит из player_completions
+        // 2. Создаст уведомление
+        // 3. Пересчитает очки игрока
+        
+        // Перезагружаем данные
+        await loadPlayers();
+        loadAdminRecords();
+        
+        alert(`Record ${status}!`);
+        
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+async function deleteRecord(recordId) {
+    if (!confirm('Delete this record?')) return;
+    
+    try {
+        // 1. Получаем данные рекорда ДО удаления
+        const { data: record, error: fetchError } = await supabase
+            .from('records')
+            .select('player_id, level_id, status')
+            .eq('id', recordId)
+            .single();
+        
+        if (fetchError) throw fetchError;
+        
+        // 2. Удаляем рекорд
+        const { error } = await supabase.from('records').delete().eq('id', recordId);
+        if (error) throw error;
+        
+        // 3. Если рекорд был approved — удаляем из completions и пересчитываем игрока
+        if (record && record.status === 'approved') {
+            await supabase.from('player_completions')
+                .delete()
+                .eq('player_id', record.player_id)
+                .eq('level_id', record.level_id);
+            
+            // Принудительно пересчитываем игрока
+            await recalcPlayerStats(record.player_id);
+        }
+        
+        // 4. Перезагружаем данные
+        await loadPlayers();
+        loadAdminRecords();
+        
+        alert('Record deleted!');
+        
+    } catch (err) {
+        alert('Error: ' + err.message);
+        console.error('deleteRecord error:', err);
+    }
+}
+
+async function recalcPlayerStats(playerId) {
+    try {
+        // Используем SQL функцию если есть, или обновляем вручную
+        const { error } = await supabase.rpc('recalc_player_stats', {
+            p_player_id: playerId
+        });
+        
+        if (error) {
+            console.warn('RPC failed, using fallback:', error);
+            // Fallback: триггер в БД должен сработать при изменении completions
+        }
+    } catch (err) {
+        console.error('recalcPlayerStats error:', err);
+    }
+}
+
+// --- Levels Tab ---
+async function loadAdminLevels() {
+    const container = document.getElementById('admin-levels-list');
+    
+    // Показываем загрузку
+    container.innerHTML = '<div class="admin-empty">Loading levels...</div>';
+    
+    if (!supabase) {
+        container.innerHTML = '<div class="admin-empty" style="color: var(--error);">❌ Supabase not initialized</div>';
+        return;
+    }
+    
+    try {
+        console.log('Fetching levels from Supabase...');
+        const { data: levels, error } = await supabase
+            .from('levels')
+            .select('*')
+            .order('rank', { ascending: true });
+        
+        if (error) {
+            console.error('Supabase error:', error);
+            container.innerHTML = `<div class="admin-empty" style="color: var(--error);">❌ Database error: ${error.message}</div>`;
+            return;
+        }
+
+        console.log('Levels loaded:', levels?.length || 0);
+
+        if (!levels || levels.length === 0) {
+            container.innerHTML = '<div class="admin-empty">No levels found in database</div>';
+            return;
+        }
+
+        // Обновляем локальные данные
+        allLevels = levels;
+        challengeList = allLevels.filter(l => l.category === 'challenge');
+        spamList = allLevels.filter(l => l.category === 'spam');
+
+        let html = `<table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Name</th>
+                    <th>Publisher</th>
+                    <th>Verifier</th>
+                    <th>GD ID</th>
+                    <th>Category</th>
+                    <th>Points</th>
+                    <th>Video</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+        levels.forEach(level => {
+            const pts = level.points ? parseFloat(level.points).toFixed(2) : calculatePoints(level.rank).toFixed(2);
+            html += `
+                <tr>
+                    <td><strong style="color:var(--accent-1)">#${level.rank}</strong></td>
+                    <td>${level.name}</td>
+                    <td>${level.publisher || '—'}</td>
+                    <td>${level.verifier || '—'}</td>
+                    <td>${level.level_id || '—'}</td>
+                    <td><span class="status-badge ${level.category === 'challenge' ? 'status-approved' : 'status-pending'}">${level.category}</span></td>
+                    <td>${pts}</td>
+                    <td>${level.video ? '<a href="' + level.video + '" target="_blank">Link</a>' : '—'}</td>
+                    <td>
+                        <div class="admin-actions">
+                            <button class="btn-icon edit" onclick="openLevelEditById(${level.id})" title="Edit">✎</button>
+                            <button class="btn-icon delete" onclick="deleteLevel(${level.id})" title="Delete">🗑</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+        
+    } catch (err) {
+        console.error('Exception in loadAdminLevels:', err);
+        container.innerHTML = `<div class="admin-empty" style="color: var(--error);">❌ Error: ${err.message}</div>`;
+    }
+}
+
+async function openLevelEditById(levelId) {
+    try {
+        const { data: level, error } = await supabase
+            .from('levels')
+            .select('*')
+            .eq('id', levelId)
+            .single();
+        
+        if (error) throw error;
+        if (!level) {
+            alert('Level not found');
+            return;
+        }
+        
+        openLevelEdit(level);
+    } catch (err) {
+        alert('Error loading level: ' + err.message);
+    }
+}
+
+async function deleteLevel(levelId) {
+    if (!confirm('DELETE level? This will also delete ALL records, completions and recalculate scores!')) return;
+    
+    try {
+        // Получаем данные уровня ДО удаления
+        const { data: level, error: fetchError } = await supabase
+            .from('levels')
+            .select('id, rank, category, name')
+            .eq('id', levelId)
+            .single();
+        
+        if (fetchError) throw fetchError;
+        
+        // Удаляем уровень (триггер в БД удалит completions и пересчитает игроков)
+        const { error } = await supabase.from('levels').delete().eq('id', levelId);
+        if (error) throw error;
+        
+        // Заполняем дырку в рангах
+        if (level && level.rank > 0) {
+            await supabase.rpc('fill_rank_gap', {
+                p_category: level.category,
+                p_removed_rank: level.rank
+            });
+        }
+        
+        // Перезагружаем данные
+        await loadLevels();
+        await loadPlayers();
+        loadAdminLevels();
+        
+        // Обновляем текущий вид
+        if (document.getElementById('lists-view').style.display !== 'none') {
+            renderLevels(currentData, currentCategory);
+        }
+        if (document.getElementById('leaderboard-view').style.display !== 'none') {
+            renderLeaderboard();
+        }
+        
+        alert(`Level "${level.name}" deleted! All scores recalculated.`);
+        
+    } catch (err) {
+        alert('Error: ' + err.message);
+        console.error('deleteLevel error:', err);
+    }
+}
+
+function openLevelEdit(level) {
+    editingLevelId = level.id;
+    document.getElementById('edit-rank').value = level.rank;
+    document.getElementById('edit-name').value = level.name;
+    document.getElementById('edit-pub').value = level.publisher;
+    document.getElementById('edit-ver').value = level.verifier;
+    document.getElementById('edit-level-id').value = level.level_id;
+    document.getElementById('edit-img').value = level.image || '';
+    document.getElementById('edit-video').value = level.video || '';
+    document.getElementById('edit-category').value = level.category || 'challenge';
+    document.getElementById('edit-fv').value = level.first_victor || '';
+    document.getElementById('level-edit-modal').classList.add('active');
+}
+
+function openLevelAdd() {
+    editingLevelId = null;
+    document.getElementById('edit-rank').value = '';
+    document.getElementById('edit-name').value = '';
+    document.getElementById('edit-pub').value = '';
+    document.getElementById('edit-ver').value = '';
+    document.getElementById('edit-level-id').value = '';
+    document.getElementById('edit-img').value = '';
+    document.getElementById('edit-video').value = '';
+    document.getElementById('edit-category').value = 'challenge';
+    document.getElementById('edit-fv').value = '';
+    document.getElementById('level-edit-modal').classList.add('active');
+}
+
+function closeLevelEdit() {
+    document.getElementById('level-edit-modal').classList.remove('active');
+    editingLevelId = null;
+}
+
+async function saveLevel() {
+    const baseData = {
+        name: document.getElementById('edit-name').value.trim(),
+        publisher: document.getElementById('edit-pub').value.trim(),
+        verifier: document.getElementById('edit-ver').value.trim(),
+        level_id: document.getElementById('edit-level-id').value.trim(),
+        image: document.getElementById('edit-img').value.trim(),
+        video: document.getElementById('edit-video').value.trim() || null,
+        category: document.getElementById('edit-category').value,
+        first_victor: document.getElementById('edit-fv').value.trim() || null
+    };
+
+    if (!baseData.name || !baseData.level_id) {
+        alert('Name и Level ID обязательны!');
+        return;
+    }
+
+    if (baseData.first_victor && baseData.verifier === baseData.first_victor) {
+        alert('Error: Verifier cannot be the same as First Victor!');
+        return;
+    }
+
+    try {
+        let targetRank;
+        const manualRank = parseInt(document.getElementById('edit-rank').value);
+        const aboveRank = parseInt(document.getElementById('edit-above-rank').value);
+        const belowRank = parseInt(document.getElementById('edit-below-rank').value);
+        
+        if (!isNaN(aboveRank) && !isNaN(belowRank)) {
+            if (aboveRank >= belowRank) {
+                alert('"Выше топа" должен быть МЕНЬШЕ чем "Ниже топа"\nПример: Выше 1, Ниже 3 → Ранг 2');
+                return;
+            }
+            targetRank = aboveRank + 1;
+        } else if (!isNaN(manualRank)) {
+            targetRank = manualRank;
+        } else {
+            alert('Укажите ранг вручную или заполните поля "выше/ниже топа"');
+            return;
+        }
+
+        const category = baseData.category;
+        
+        if (editingLevelId) {
+            // === РЕДАКТИРОВАНИЕ ===
+            
+            // Получаем текущий уровень
+            const { data: currentLevel } = await supabase
+                .from('levels')
+                .select('rank')
+                .eq('id', editingLevelId)
+                .single();
+            
+            const oldRank = currentLevel ? currentLevel.rank : null;
+            
+            if (oldRank && oldRank !== targetRank) {
+                // Меняем ранг — нужно сдвинуть остальных
+                
+                if (targetRank < oldRank) {
+                    // Двигаем ВВЕРХ (например, с 5 на 2)
+                    // Уровни с targetRank по oldRank-1 → сдвигаем вниз на 1
+                    await supabase.rpc('shift_ranks_down', {
+                        p_category: category,
+                        p_target_rank: targetRank
+                    });
+                    
+                    // Обновляем текущий уровень
+                    await supabase.from('levels')
+                        .update({ ...baseData, rank: targetRank })
+                        .eq('id', editingLevelId);
+                        
+                } else {
+                    // Двигаем ВНИЗ (например, с 2 на 5)
+                    // Сначала удаляем старый ранг (заполняем дырку)
+                    await supabase.rpc('fill_rank_gap', {
+                        p_category: category,
+                        p_removed_rank: oldRank
+                    });
+                    
+                    // Теперь сдвигаем для нового ранга
+                    await supabase.rpc('shift_ranks_down', {
+                        p_category: category,
+                        p_target_rank: targetRank
+                    });
+                    
+                    // Обновляем текущий уровень
+                    await supabase.from('levels')
+                        .update({ ...baseData, rank: targetRank })
+                        .eq('id', editingLevelId);
+                }
+                
+            } else {
+                // Ранг не меняется — просто обновляем данные
+                const { error } = await supabase
+                    .from('levels')
+                    .update({ ...baseData, rank: targetRank })
+                    .eq('id', editingLevelId);
+                if (error) throw error;
+            }
+            
+        } else {
+            // === НОВЫЙ УРОВЕНЬ ===
+            
+            // Сдвигаем уровни вниз чтобы освободить место
+            await supabase.rpc('shift_ranks_down', {
+                p_category: category,
+                p_target_rank: targetRank
+            });
+            
+            // Вставляем новый уровень
+            const { error } = await supabase
+                .from('levels')
+                .insert([{ ...baseData, rank: targetRank }]);
+            if (error) throw error;
+        }
+
+        await loadLevels();
+        await loadPlayers();
+        closeLevelEdit();
+        loadAdminLevels();
+        
+        if (document.getElementById('lists-view').style.display !== 'none') {
+            renderLevels(currentData, currentCategory);
+        }
+        alert('Level saved!');
+
+    } catch (err) {
+        alert('Error: ' + err.message);
+        console.error('saveLevel error:', err);
+        await emergencyFixRanks();
+    }
+}
+
+// Экстренный фикс рангов
+async function emergencyFixRanks() {
+    console.log('Running emergency rank fix...');
+    
+    const { data: broken } = await supabase
+        .from('levels')
+        .select('id, rank, name, category')
+        .or('rank.lt.0,rank.gt.100000');
+    
+    if (!broken || broken.length === 0) return;
+    
+    for (const level of broken) {
+        const { data: normal } = await supabase
+            .from('levels')
+            .select('rank')
+            .eq('category', level.category)
+            .gt('rank', 0)
+            .lt('rank', 100000)
+            .order('rank', { ascending: false })
+            .limit(1);
+        
+        const newRank = normal && normal.length > 0 ? normal[0].rank + 1 : 1;
+        await supabase.from('levels').update({ rank: newRank }).eq('id', level.id);
+    }
+    
+    console.log('Emergency fix complete');
+}
+
+let allPlayersCache = []; // Кэш всех игроков
+
+// --- Players Tab ---
+async function loadAdminPlayers() {
+    const container = document.getElementById('admin-players-list');
+    container.innerHTML = '<div class="admin-empty">Click "Load All" to see all players, or search by username</div>';
+}
+
+async function loadAllPlayers() {
+    const container = document.getElementById('admin-players-list');
+    container.innerHTML = '<div class="admin-empty">Loading players...</div>';
+    
+    if (!supabase) {
+        container.innerHTML = '<div class="admin-empty" style="color: var(--error);">❌ Supabase not connected</div>';
+        return;
+    }
+    
+    try {
+        // Загружаем игроков с их паролями (для проверки что система работает)
+        const { data: players, error } = await supabase
+            .from('players')
+            .select('*, player_passwords(password)')
+            .order('total_score', { ascending: false });
+        
+        if (error) throw error;
+        
+        allPlayersCache = players || [];
+        document.getElementById('players-total-count').innerText = `Total: ${allPlayersCache.length}`;
+        
+        renderPlayersList(allPlayersCache);
+    } catch (err) {
+        console.error('Error loading players:', err);
+        container.innerHTML = `<div class="admin-empty" style="color: var(--error);">❌ Error: ${err.message}</div>`;
+    }
+}
+
+function renderPlayersList(players) {
+    const container = document.getElementById('admin-players-list');
+    
+    if (!players || players.length === 0) {
+        container.innerHTML = '<div class="admin-empty">No players found</div>';
+        return;
+    }
+    
+    let html = '';
+    
+    for (const player of players) {
+        const isBanned = player.is_banned;
+        const banBadge = isBanned ? '<span class="status-badge status-rejected" style="margin-left: 8px;">BANNED</span>' : '';
+        // --- ПАРОЛЬ: пробуем все варианты структуры Supabase ---
+let passwordValue = null;
+
+// Вариант 1: массив (стандарт Supabase для связей)
+if (Array.isArray(player.player_passwords) && player.player_passwords.length > 0) {
+    passwordValue = player.player_passwords[0].password;
+}
+// Вариант 2: объект
+else if (player.player_passwords && typeof player.player_passwords === 'object') {
+    passwordValue = player.player_passwords.password;
+}
+// Вариант 3: прямое поле (если сделали join иначе)
+else if (player.password) {
+    passwordValue = player.password;
+}
+
+const pwdStatus = passwordValue 
+    ? `🔑 ${passwordValue}` 
+    : '⚠️ No password';
+        
+        html += `
+            <div style="margin-bottom: 20px; border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; background: ${isBanned ? 'rgba(239,68,68,0.05)' : 'var(--card-bg)'};">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h3 style="font-size: 18px; display: flex; align-items: center; flex-wrap: wrap;">
+                            ${player.username}
+                            ${banBadge}
+                            <span style="font-size: 12px; color: var(--text-dim); margin-left: 10px; font-weight: 500;">${pwdStatus}</span>
+                        </h3>
+                        <div style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">
+                            Score: <strong style="color: var(--accent-2);">${parseFloat(player.total_score || 0).toFixed(2)}</strong> | 
+                            Completed: <strong>${player.levels_completed || 0}</strong> | 
+                            Hardest: <strong style="color: var(--accent-1);">#${player.hardest_level_rank || '—'}</strong> ${player.hardest_level_name || ''}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        ${isBanned 
+                            ? `<button class="btn-icon approve" onclick="toggleBanPlayer('${player.id}', '${player.username}', false)" title="Unban">🔓 Unban</button>`
+                            : `<button class="btn-icon reject" onclick="toggleBanPlayer('${player.id}', '${player.username}', true)" title="Ban">🔨 Ban</button>`
+                        }
+                    </div>
+                </div>
+                <div id="player-levels-${player.id}" style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;">
+                    <span style="color: var(--text-dim); font-size: 12px;">Loading levels...</span>
+                </div>
+            </div>
+        `;
+        
+        // Асинхронно загружаем уровни игрока
+        loadPlayerLevelsForAdmin(player.id);
+    }
+    
+    container.innerHTML = html;
+}
+
+async function loadPlayerLevelsForAdmin(playerId) {
+    const container = document.getElementById(`player-levels-${playerId}`);
+    if (!container) return;
+    
+    try {
+        const { data: completions, error } = await supabase
+            .from('player_completions')
+            .select('levels(id, name, rank, category, points)')
+            .eq('player_id', playerId);
+        
+        if (error) throw error;
+        
+        const levels = (completions || [])
+            .map(c => c.levels)
+            .filter(l => l && l.category === 'challenge')
+            .sort((a, b) => a.rank - b.rank);
+        
+        if (levels.length === 0) {
+            container.innerHTML = '<span style="color: var(--text-dim); font-size: 13px;">No challenge levels completed</span>';
+            return;
+        }
+        
+        container.innerHTML = levels.map(l => `
+            <div class="lb-level-tag" style="font-size: 12px; padding: 6px 10px;">
+                <span class="tag-rank">#${l.rank}</span>${l.name}
+                <span style="color: var(--text-dim); margin-left: 4px;">(${parseFloat(l.points || calculatePoints(l.rank)).toFixed(1)})</span>
+            </div>
+        `).join('');
+        
+    } catch (err) {
+        container.innerHTML = '<span style="color: var(--error); font-size: 12px;">Error loading levels</span>';
+    }
+}
+
+async function searchAdminPlayer(query) {
+    const container = document.getElementById('admin-players-list');
+    const trimmed = query.trim().toLowerCase();
+    
+    if (!trimmed) {
+        // Если поиск пустой — показываем всех из кэша
+        renderPlayersList(allPlayersCache);
+        return;
+    }
+    
+    // Фильтруем из кэша (быстрый поиск)
+    const filtered = allPlayersCache.filter(p => 
+        p.username.toLowerCase().includes(trimmed)
+    );
+    
+    if (filtered.length > 0) {
+        renderPlayersList(filtered);
+        return;
+    }
+    
+    // Если в кэше нет — ищем в БД
+    container.innerHTML = '<div class="admin-empty">Searching...</div>';
+    
+    try {
+        const { data: players, error } = await supabase
+            .from('players')
+            .select('*, player_passwords(password)')
+            .ilike('username', '%' + trimmed + '%')
+            .limit(20);
+        
+        if (error) throw error;
+        renderPlayersList(players || []);
+    } catch (err) {
+        container.innerHTML = `<div class="admin-empty" style="color: var(--error);">Error: ${err.message}</div>`;
+    }
+}
+
+// --- Ban/Unban (ИСПРАВЛЕННЫЙ) ---
+async function toggleBanPlayer(playerId, username, ban) {
+    const action = ban ? 'ban' : 'unban';
+    const reason = ban ? prompt(`Enter ban reason for ${username}:`) : null;
+    
+    if (ban && !reason) {
+        alert('Ban reason is required!');
+        return;
+    }
+    
+    if (!confirm(`${ban ? 'Ban' : 'Unban'} player ${username}?`)) return;
+    
+    try {
+        const updateData = ban 
+            ? { is_banned: true, ban_reason: reason, updated_at: new Date().toISOString() }
+            : { is_banned: false, ban_reason: null, updated_at: new Date().toISOString() };
+        
+        const { error } = await supabase
+            .from('players')
+            .update(updateData)
+            .eq('id', playerId);
+        
+        if (error) throw error;
+        
+        alert(`Player ${username} has been ${ban ? 'banned' : 'unbanned'}!`);
+        
+        // Обновляем кэш и перерисовываем
+        const player = allPlayersCache.find(p => p.id === playerId);
+        if (player) {
+            player.is_banned = ban;
+            if (ban) player.ban_reason = reason;
+            else player.ban_reason = null;
+        }
+        renderPlayersList(allPlayersCache);
+        
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+// --- Bans Tab ---
+async function loadAdminBans() {
+    const container = document.getElementById('bans-list');
+    
+    try {
+        const { data: players, error } = await supabase
+            .from('players')
+            .select('*')
+            .eq('is_banned', true)
+            .order('updated_at', { ascending: false });
+        
+        if (error) throw error;
+
+        if (!players || players.length === 0) {
+            container.innerHTML = '<div class="admin-empty">No banned players</div>';
+            return;
+        }
+
+        let html = `<table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Ban Reason</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+        players.forEach(player => {
+            html += `
+                <tr>
+                    <td>${player.username}</td>
+                    <td>${player.ban_reason || 'Not specified'}</td>
+                    <td>
+                        <div class="admin-actions">
+                            <button class="btn-icon approve" onclick="unbanPlayerById('${player.id}', '${player.username}')" title="Unban">🔓</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    } catch (err) {
+        container.innerHTML = '<div class="admin-empty">Error: ' + err.message + '</div>';
+    }
+}
+
+// === DRAG-AND-DROP РАНГОВ ===
+async function loadRankDrag() {
+  const container = document.getElementById('rank-drag-list');
+  if (!container) return;
+  container.innerHTML = '<div class="admin-empty">Загрузка...</div>';
+  
+  const { data: levels, error } = await supabase
+    .from('levels')
+    .select('id, rank, name, publisher')
+    .eq('category','challenge')
+    .order('rank', {ascending:true});
+  
+  if (error) { container.innerHTML = 'Ошибка: '+error.message; return; }
+  
+  container.innerHTML = levels.map(l => `
+    <div class="rank-item" draggable="true" data-id="${l.id}" data-rank="${l.rank}"
+      style="padding:10px 14px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:8px;cursor:grab;display:flex;gap:12px;align-items:center;">
+      <span style="color:var(--accent-1);font-weight:700;width:35px;">#${l.rank}</span>
+      <span style="flex:1;">${l.name}</span>
+      <span style="color:var(--text-dim);font-size:12px;">${l.publisher}</span>
+    </div>
+  `).join('');
+
+  let dragged = null;
+  container.querySelectorAll('.rank-item').forEach(el => {
+    el.addEventListener('dragstart', () => { dragged = el; el.style.opacity='0.5'; });
+    el.addEventListener('dragend', () => { el.style.opacity='1'; });
+    el.addEventListener('dragover', e => e.preventDefault());
+    el.addEventListener('drop', async e => {
+      e.preventDefault();
+      if (!dragged || dragged===el) return;
+      const newRank = parseInt(el.dataset.rank);
+      const levelId = parseInt(dragged.dataset.id);
+      await supabase.rpc('move_level', { p_level_id: levelId, p_new_rank: newRank });
+      await loadRankDrag();
+      await loadAllData();
+    });
+  });
+}
+
+// патчим switchAdminTab чтобы грузить ранги
+const _origSwitch = window.switchAdminTab;
+window.switchAdminTab = function(tab) {
+  _origSwitch(tab);
+  if (tab === 'ranks') loadRankDrag();
+};
+
+// ============================================
+// STARS BACKGROUND
+// ============================================
+function initStars() {
+    const starCount = 50;
+    for (let i = 0; i < starCount; i++) {
+        let star = document.createElement('div');
+        star.className = 'bg-star';
+        let size = Math.random() * 8 + 4;
+        star.style.width = size + 'px';
+        star.style.height = size + 'px';
+        star.style.left = Math.random() * 100 + 'vw';
+        star.style.animationDuration = (Math.random() * 15 + 10) + 's';
+        star.style.animationDelay = (Math.random() * -30) + 's';
+        document.body.appendChild(star);
+    }
+}
+initStars();
+
+// ============================================
+// PROFILE MODAL EVENT LISTENERS
+// ============================================
+
+document.getElementById('profile-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeProfileModal();
+});
+
+// ============================================
+// MODAL EVENT LISTENERS (FIX)
+// ============================================
+
+// Убедимся что модалка закрывается по клику вне контента
+document.getElementById('level-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+document.getElementById('level-edit-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeLevelEdit();
+});
+
+// ============================================
+// INIT
+// ============================================
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeAuth();
+        closeModal();
+        closeLevelEdit();
+        closeProfileModal();
+    }
+});
+
+// Load data on startup
+if (supabase) {
+    console.log('Starting data load...');
+    loadAllData();
+} else {
+    console.error('Supabase not available on init!');
+}
+</script>
+
+</body>
+</html>
