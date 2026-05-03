@@ -2802,27 +2802,28 @@ async function saveLevel() {
         const conflict = existingLevels.find(l => l.rank === targetRank);
 
         if (conflict) {
-            // Сдвигаем: все уровни с rank >= targetRank на +1
-            const toShift = existingLevels.filter(l => l.rank >= targetRank);
-            
-            for (const level of toShift) {
-    const tempRank = level.rank + 100000; // +100000 вместо отрицательных
-    const { error } = await supabase
-        .from('levels')
-        .update({ rank: tempRank })
-        .eq('id', level.id);
-    if (error) throw error;
+    const toShift = existingLevels.filter(l => l.rank >= targetRank);
+    
+    // Фаза 1: временные большие значения (избегаем отрицательных)
+    for (const level of toShift) {
+        const tempRank = level.rank + 100000;
+        const { error } = await supabase
+            .from('levels')
+            .update({ rank: tempRank })
+            .eq('id', level.id);
+        if (error) throw error;
+    }
+    
+    // Фаза 2: финальные значения (+1 от оригинала)
+    for (const level of toShift) {
+        const newRank = (level.rank - 100000) + 1;
+        const { error } = await supabase
+            .from('levels')
+            .update({ rank: newRank })
+            .eq('id', level.id);
+        if (error) throw error;
+    }
 }
-            
-            for (const level of toShift) {
-    const newRank = level.rank - 100000 + 1; // -100000 + 1
-    const { error } = await supabase
-        .from('levels')
-        .update({ rank: newRank })
-        .eq('id', level.id);
-    if (error) throw error;
-}
-        }
 
         // Сохраняем уровень
         if (editingLevelId) {
