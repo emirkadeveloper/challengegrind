@@ -1615,7 +1615,11 @@ function openProfileModal(targetUsername = null) {
     const globalRank = sortedPlayers.findIndex(p => p.name === username) + 1;
     
     document.getElementById('profile-avatar-letter').innerText = player.name.charAt(0).toUpperCase();
-    document.getElementById('profile-name').innerText = player.name;
+    
+    // ЗАМЕНЕННЫЙ БЛОК:
+    const roleBadge = getRoleBadge(username);
+    document.getElementById('profile-name').innerHTML = `${player.name} ${roleBadge}`;
+    
     document.getElementById('profile-rank-text').innerText = `#${globalRank} in global ranking`;
     document.getElementById('profile-total-score').innerText = player.totalScore.toFixed(2);
     document.getElementById('profile-best-rank').innerText = player.bestRank ? `#${player.bestRank}` : '—';
@@ -1960,7 +1964,6 @@ async function renderLevelRecords(levelId) {
 // LEADERBOARD
 // ============================================
 function renderLeaderboard() {
-    // Убедимся что данные загружены
     if (Object.keys(playerData).length === 0) {
         console.log('No player data yet, retrying...');
         setTimeout(renderLeaderboard, 500);
@@ -1981,9 +1984,12 @@ function renderLeaderboard() {
         item.dataset.player = player.name;
         item.onclick = () => selectPlayer(player.name, sortedPlayers);
 
+        // Значок роли
+        const roleBadge = getRoleBadge(player.name);
+        
         item.innerHTML = `
             <span class="lb-rank">#${index + 1}</span>
-            <span class="lb-name">${player.name}</span>
+            <span class="lb-name">${player.name} ${roleBadge}</span>
             <span class="lb-score">${player.totalScore.toFixed(2)}</span>
         `;
         listContainer.appendChild(item);
@@ -1992,6 +1998,15 @@ function renderLeaderboard() {
     if (sortedPlayers.length > 0) {
         selectPlayer(sortedPlayers[0].name, sortedPlayers);
     }
+}
+
+function getRoleBadge(username) {
+    const roles = {
+        'ItzTheRealMint': '<span style="background: linear-gradient(135deg, #ff9a00, #ffce00); color: #000; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; margin-left: 6px;">C</span>',
+        'MezZzGD': '<span style="background: linear-gradient(135deg, #ef4444, #f59e0b); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; margin-left: 6px;">DEV</span>',
+        'GMDTETO': '<span style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; margin-left: 6px;">A</span>'
+    };
+    return roles[username] || '';
 }
 
 function selectPlayer(playerName, allPlayers) {
@@ -2004,6 +2019,7 @@ function selectPlayer(playerName, allPlayers) {
 
     const rank = allPlayers.findIndex(p => p.name === playerName) + 1;
     const initial = player.name.charAt(0).toUpperCase();
+    const roleBadge = getRoleBadge(player.name);
 
     const panel = document.getElementById('lb-info-panel');
     panel.innerHTML = `
@@ -2014,7 +2030,7 @@ function selectPlayer(playerName, allPlayers) {
                 </button>
             </div>
             <div class="lb-profile-avatar">${initial}</div>
-            <div class="lb-profile-name">${player.name}</div>
+            <div class="lb-profile-name">${player.name} ${roleBadge}</div>
             <div class="lb-profile-rank">#${rank} in global ranking</div>
         </div>
         <div class="lb-stats-grid">
@@ -2152,7 +2168,9 @@ async function submitRecord() {
 let editingLevelId = null;
 
 function isAdmin() {
-    return currentUser && currentUser.isAdmin;
+    if (!currentUser) return false;
+    const adminUsers = ['ItzTheRealMint', 'MezZzGD', 'GMDTETO'];
+    return adminUsers.includes(currentUser.username) || currentUser.isAdmin;
 }
 
 async function loadAdminPanel() {
@@ -2687,10 +2705,10 @@ async function openLevelEditById(levelId) {
 }
 
 async function deleteLevel(levelId) {
-    if (!confirm('Delete this level? This will also delete all records for this level!')) return;
+    if (!confirm('DELETE level? This will also delete ALL records, completions and recalculate scores!')) return;
     
     try {
-        // Получаем данные уровня ДО удаления (нужен rank и category)
+        // Получаем данные уровня ДО удаления
         const { data: level, error: fetchError } = await supabase
             .from('levels')
             .select('id, rank, category, name')
@@ -2699,11 +2717,11 @@ async function deleteLevel(levelId) {
         
         if (fetchError) throw fetchError;
         
-        // Удаляем уровень
+        // Удаляем уровень (триггер в БД удалит completions и пересчитает игроков)
         const { error } = await supabase.from('levels').delete().eq('id', levelId);
         if (error) throw error;
         
-        // Заполняем дырку: все ниже → вверх на 1
+        // Заполняем дырку в рангах
         if (level && level.rank > 0) {
             await supabase.rpc('fill_rank_gap', {
                 p_category: level.category,
@@ -2711,16 +2729,20 @@ async function deleteLevel(levelId) {
             });
         }
         
+        // Перезагружаем данные
         await loadLevels();
         await loadPlayers();
         loadAdminLevels();
         
-        // Обновляем текущий вид если нужно
+        // Обновляем текущий вид
         if (document.getElementById('lists-view').style.display !== 'none') {
             renderLevels(currentData, currentCategory);
         }
+        if (document.getElementById('leaderboard-view').style.display !== 'none') {
+            renderLeaderboard();
+        }
         
-        alert('Level deleted! Gap filled automatically.');
+        alert(`Level "${level.name}" deleted! All scores recalculated.`);
         
     } catch (err) {
         alert('Error: ' + err.message);
