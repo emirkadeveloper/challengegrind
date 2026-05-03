@@ -2739,9 +2739,15 @@ async function saveLevel() {
         return;
     }
 
+    // Проверка verifier ≠ first_victor
+    if (baseData.first_victor && baseData.verifier === baseData.first_victor) {
+        alert('Error: Verifier cannot be the same as First Victor!');
+        return;
+    }
+
     try {
         if (editingLevelId) {
-            // РЕДАКТИРОВАНИЕ — обычный UPDATE
+            // РЕДАКТИРОВАНИЕ
             const rank = parseInt(document.getElementById('edit-rank').value);
             if (!rank) { alert('Укажите rank!'); return; }
             
@@ -2752,17 +2758,16 @@ async function saveLevel() {
             if (error) throw error;
             
         } else {
-            // НОВЫЙ УРОВЕНЬ — пересчёт рангов в клиенте (без RPC!)
+            // НОВЫЙ УРОВЕНЬ
             const manualRank = parseInt(document.getElementById('edit-rank').value);
             const aboveRank  = parseInt(document.getElementById('edit-above-rank').value);
             const belowRank  = parseInt(document.getElementById('edit-below-rank').value);
             
             let targetRank = manualRank;
             
-            // Если указаны границы — считаем автоматически
             if (!isNaN(aboveRank) && !isNaN(belowRank)) {
                 if (belowRank - aboveRank !== 2) {
-                    alert('Между "выше" и "ниже" должна быть ровно 1 свободная позиция. Пример: выше 1, ниже 3 → ранг 2');
+                    alert('Между "выше" и "ниже" должна быть ровно 1 свободная позиция');
                     return;
                 }
                 targetRank = aboveRank + 1;
@@ -2771,10 +2776,9 @@ async function saveLevel() {
                 return;
             }
             
-            // === ПЕРЕСЧЁТ РАНГОВ В КЛИЕНТЕ (без RPC) ===
             const category = baseData.category;
             
-            // 1. Получаем все уровни этой категории
+            // === СДВИГ БЕЗ КОНФЛИКТОВ: используем ОТРИЦАТЕЛЬНЫЕ временные значения ===
             const { data: existingLevels, error: fetchError } = await supabase
                 .from('levels')
                 .select('id, rank')
@@ -2783,35 +2787,37 @@ async function saveLevel() {
             
             if (fetchError) throw fetchError;
             
-            // 2. Проверяем конфликт рангов
             const conflict = existingLevels.find(l => l.rank === targetRank);
             
             if (conflict) {
-                // Нужно сдвинуть уровни с >= targetRank на +1
-                // Делаем двухфазно (как в SQL) через временные значения
-                
-                // Фаза 1: +10000 всем кто >= targetRank
+                // Фаза 1: сдвигаем в минус (временные отрицательные значения)
                 const toShift = existingLevels.filter(l => l.rank >= targetRank);
                 
-                for (const level of toShift) {
+                for (let i = 0; i < toShift.length; i++) {
+                    const level = toShift[i];
+                    const tempRank = -(level.rank + 10000); // отрицательное временное значение
+                    
                     const { error } = await supabase
                         .from('levels')
-                        .update({ rank: level.rank + 10000 })
+                        .update({ rank: tempRank })
                         .eq('id', level.id);
                     if (error) throw error;
                 }
                 
-                // Фаза 2: -9999 (получаем +1 от оригинала)
-                for (const level of toShift) {
+                // Фаза 2: возвращаем с +1
+                for (let i = 0; i < toShift.length; i++) {
+                    const level = toShift[i];
+                    const newRank = level.rank + 1; // оригинал + 1
+                    
                     const { error } = await supabase
                         .from('levels')
-                        .update({ rank: level.rank + 1 }) // было +10000, станет +1
+                        .update({ rank: newRank })
                         .eq('id', level.id);
                     if (error) throw error;
                 }
             }
             
-            // 3. Вставляем новый уровень
+            // Вставляем новый уровень
             const { data: newLevel, error: insertError } = await supabase
                 .from('levels')
                 .insert([{ ...baseData, rank: targetRank }])
@@ -2819,8 +2825,6 @@ async function saveLevel() {
                 .single();
             
             if (insertError) throw insertError;
-            
-            console.log('Level inserted:', newLevel);
         }
         
         await loadLevels();
