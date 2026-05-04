@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Challenge Grind</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,500,0,0&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0,0" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
     <style>
         :root {
@@ -622,6 +624,682 @@
             .modal-stats-grid { grid-template-columns: 1fr; }
             .admin-form-grid { grid-template-columns: 1fr; }
         }
+
+        /* =========================================================
+           POLISH OVERRIDES — orange theme, structure-preserving
+           Adds depth, glow, shimmer and micro-interactions.
+           ========================================================= */
+
+        /* Layered ambient background + faint orange grid */
+        body {
+            background-image:
+                radial-gradient(circle at 18% 12%, rgba(255, 154, 0, 0.10) 0%, transparent 38%),
+                radial-gradient(circle at 82% 88%, rgba(255, 206, 0, 0.07) 0%, transparent 42%),
+                radial-gradient(circle at top right, #1a1410 0%, transparent 40%),
+                radial-gradient(circle at bottom left, #12100a 0%, transparent 40%);
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(255, 154, 0, 0.045) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 154, 0, 0.045) 1px, transparent 1px);
+            background-size: 56px 56px;
+            -webkit-mask-image: radial-gradient(ellipse at 50% 30%, black 10%, transparent 70%);
+                    mask-image: radial-gradient(ellipse at 50% 30%, black 10%, transparent 70%);
+        }
+
+        /* Refined scrollbar */
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: #0a0a0d; }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #2a2a35, #1a1a20);
+            border-radius: 10px;
+            border: 2px solid #0a0a0d;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, var(--accent-1), var(--accent-2));
+        }
+        * { scrollbar-color: #2a2a35 #0a0a0d; }
+
+        /* Header: gradient hairline + soft shadow */
+        header {
+            border-bottom: none;
+            box-shadow: 0 1px 0 rgba(255, 154, 0, 0.10), 0 12px 30px rgba(0, 0, 0, 0.45);
+        }
+        header::after {
+            content: '';
+            position: absolute;
+            left: 0; right: 0; bottom: -1px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 154, 0, 0.55) 30%, rgba(255, 206, 0, 0.45) 70%, transparent 100%);
+            pointer-events: none;
+        }
+
+        /* Logo glow */
+        .logo span {
+            filter: drop-shadow(0 0 14px rgba(255, 154, 0, 0.45));
+            transition: filter 0.3s;
+        }
+        .logo:hover span {
+            filter: drop-shadow(0 0 22px rgba(255, 206, 0, 0.7));
+        }
+
+        /* Nav links: animated underline */
+        .nav-links a { position: relative; }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            left: 0; bottom: -6px;
+            width: 0; height: 2px;
+            background: var(--accent-gradient);
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(255, 154, 0, 0.5);
+            transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+
+        /* User avatar: glow ring */
+        .user-avatar {
+            box-shadow: 0 4px 14px rgba(255, 154, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        .user-avatar:hover {
+            box-shadow: 0 6px 22px rgba(255, 154, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        }
+
+        /* Hero title with shimmering gradient */
+        .hero-title {
+            background: linear-gradient(120deg, #ffb347 0%, #ff9a00 30%, #ffce00 55%, #ffb347 80%, #ff9a00 100%);
+            background-size: 220% 100%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: heroShine 6s ease-in-out infinite, fadeIn 0.6s ease;
+            filter: drop-shadow(0 6px 28px rgba(255, 154, 0, 0.35));
+        }
+        @keyframes heroShine {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* Primary / submit / auth buttons: shine sweep on hover */
+        .btn-primary, .auth-btn, .submit-btn, .btn-nav {
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+            box-shadow:
+                0 6px 18px rgba(255, 154, 0, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        }
+        .btn-primary::before, .auth-btn::before, .submit-btn::before, .btn-nav::before {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0;
+            left: -120%;
+            width: 60%;
+            background: linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0.45) 50%, transparent 100%);
+            transform: skewX(-20deg);
+            transition: left 0.7s ease;
+            pointer-events: none;
+        }
+        .btn-primary:hover::before, .auth-btn:hover::before, .submit-btn:hover::before, .btn-nav:hover::before {
+            left: 130%;
+        }
+        .btn-primary:hover, .auth-btn:hover, .submit-btn:hover {
+            box-shadow:
+                0 14px 32px rgba(255, 154, 0, 0.5),
+                0 0 0 1px rgba(255, 206, 0, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        }
+
+        /* Secondary button: subtle glass */
+        .btn-secondary {
+            backdrop-filter: blur(8px);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+        }
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, rgba(255, 154, 0, 0.10), rgba(255, 206, 0, 0.04));
+            box-shadow: 0 12px 28px rgba(255, 154, 0, 0.18);
+        }
+
+        /* Page titles: gradient text + accent underline */
+        .page-title {
+            background: linear-gradient(135deg, #ffffff 0%, #ffe9c4 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 14px;
+        }
+        .page-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 64px;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--accent-gradient);
+            box-shadow: 0 0 18px rgba(255, 154, 0, 0.65);
+        }
+
+        /* Changelog: glassy + glowing dots */
+        .changelog-container {
+            background: linear-gradient(135deg, rgba(20, 20, 24, 0.92), rgba(12, 12, 14, 0.85));
+            backdrop-filter: blur(10px);
+            box-shadow: 0 22px 50px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+        .changelog-container::before {
+            height: 3px;
+            box-shadow: 0 0 18px rgba(255, 154, 0, 0.55);
+        }
+        .changelog-item::before {
+            box-shadow: 0 0 14px var(--accent-1), 0 0 28px rgba(255, 154, 0, 0.35);
+        }
+
+        /* Category segmented control: active glow */
+        .category-btn.active {
+            box-shadow: 0 6px 20px rgba(255, 154, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        }
+
+        /* Inputs: stronger focus halo */
+        .auth-input:focus,
+        .form-input:focus,
+        .form-select:focus,
+        .search-bar:focus {
+            border-color: var(--accent-1);
+            box-shadow: 0 0 0 4px var(--accent-glow), 0 0 22px rgba(255, 154, 0, 0.18);
+        }
+
+        /* Level cards: glassy + animated gradient border on hover */
+        .level-card {
+            background: linear-gradient(135deg, rgba(26, 26, 32, 0.82), rgba(18, 18, 22, 0.7));
+            backdrop-filter: blur(8px);
+            transition:
+                transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+                border-color 0.3s,
+                box-shadow 0.3s;
+        }
+        .level-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(255, 154, 0, 0.55) 0%, rgba(255, 206, 0, 0.15) 35%, transparent 65%);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+                    mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.35s ease;
+            pointer-events: none;
+        }
+        .level-card:hover {
+            transform: translateY(-6px) scale(1.012);
+            box-shadow: 0 26px 60px rgba(0, 0, 0, 0.55), 0 0 36px rgba(255, 154, 0, 0.16);
+        }
+        .level-card:hover::after { opacity: 1; }
+
+        /* Points: subtle glow */
+        .points-value {
+            filter: drop-shadow(0 0 12px rgba(255, 206, 0, 0.35));
+        }
+
+        /* Leaderboard panels: glassy */
+        .lb-list-panel, .lb-info-panel {
+            background: linear-gradient(135deg, rgba(20, 20, 24, 0.92), rgba(14, 14, 18, 0.85));
+            backdrop-filter: blur(8px);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+        }
+        .lb-list-header {
+            background: linear-gradient(180deg, rgba(255, 154, 0, 0.05), transparent);
+        }
+        .lb-player-item.active {
+            box-shadow: inset 0 0 0 1px rgba(255, 154, 0, 0.18);
+        }
+        .lb-profile-avatar {
+            box-shadow: 0 8px 22px rgba(255, 154, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        .lb-stat-box {
+            transition: transform 0.25s, border-color 0.25s, background 0.25s;
+        }
+        .lb-stat-box:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 154, 0, 0.35);
+            background: rgba(255, 154, 0, 0.04);
+        }
+
+        /* Hardest card: shimmer sweep on hover */
+        .lb-hardest { position: relative; overflow: hidden; }
+        .lb-hardest::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(110deg, transparent 25%, rgba(255, 206, 0, 0.14) 50%, transparent 75%);
+            transform: translateX(-100%);
+            transition: transform 0.7s ease;
+            pointer-events: none;
+        }
+        .lb-hardest:hover::after { transform: translateX(100%); }
+
+        /* Submit header: punchier gradient + shimmer */
+        .submit-header {
+            background: linear-gradient(135deg, #b27115 0%, #e09023 50%, #f5a82a 100%);
+            box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+        }
+        .submit-header::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.18) 50%, transparent 65%);
+            transform: translateX(-100%);
+            animation: submitShine 5s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes submitShine {
+            0%, 30% { transform: translateX(-100%); }
+            70%, 100% { transform: translateX(100%); }
+        }
+
+        /* Modals: deeper shadow + accent hairline under header */
+        .modal-content {
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 154, 0, 0.06);
+        }
+        .modal-header::after {
+            content: '';
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent-1), var(--accent-2), transparent);
+            pointer-events: none;
+        }
+        .modal-title-area h2 {
+            background: linear-gradient(135deg, #ffffff 0%, #ffe9c4 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .modal-stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .modal-stat-card:hover {
+            border-color: rgba(255, 154, 0, 0.35);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        /* Auth modal */
+        .auth-modal {
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 154, 0, 0.07);
+        }
+
+        /* Telegram floating button: outer glow ring */
+        .tg-float-btn {
+            box-shadow: 0 12px 28px rgba(255, 154, 0, 0.28), 0 0 0 1px rgba(255, 154, 0, 0.18);
+        }
+        .tg-float-btn::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 32px;
+            background: var(--accent-gradient);
+            z-index: -1;
+            opacity: 0;
+            filter: blur(14px);
+            transition: opacity 0.4s;
+        }
+        .tg-float-btn:hover::before { opacity: 0.75; }
+
+        /* Status badges: subtle inner highlight */
+        .status-approved, .status-pending, .status-rejected, .status-badge {
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+
+        /* Notifications dropdown: glassy */
+        .notif-dropdown {
+            background: linear-gradient(135deg, rgba(20, 20, 24, 0.95), rgba(14, 14, 18, 0.9));
+            backdrop-filter: blur(12px);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 154, 0, 0.05);
+        }
+
+        /* Admin tabs / panels: subtle elevation */
+        .admin-panel {
+            background: linear-gradient(135deg, rgba(20, 20, 24, 0.92), rgba(14, 14, 18, 0.85));
+            backdrop-filter: blur(8px);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+        }
+        .admin-tab.active {
+            box-shadow: 0 6px 18px rgba(255, 154, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        }
+
+        /* Selection */
+        ::selection { background: rgba(255, 154, 0, 0.35); color: #fff; }
+
+        /* =========================================================
+           MATERIAL SYMBOLS — replaces emojis. Helper class .ms
+           ========================================================= */
+        .ms {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+            font-feature-settings: 'liga';
+            font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+            vertical-align: -0.18em;
+            font-size: 1.15em;
+            color: inherit;
+            user-select: none;
+            transition: font-variation-settings 0.25s ease, transform 0.25s ease, color 0.25s ease;
+        }
+        .ms.filled { font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+        .ms.lg { font-size: 1.35em; }
+        .ms.xl { font-size: 1.6em; }
+        .ms.accent { color: var(--accent-2); }
+
+        /* Filled variant on hover for interactive icon containers */
+        .btn-icon:hover .ms,
+        .nav-links a:hover .ms,
+        .lb-hardest:hover .ms,
+        .modal-stat-card:hover .ms,
+        .lb-stat-box:hover .ms,
+        .lb-level-tag:hover .ms,
+        .level-card:hover .ms {
+            font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* Tame the trophy / fire icons in highlighted spots: use accent color + small glow */
+        .lb-list-header .ms,
+        .changelog-title .ms,
+        .lb-completed-title .ms,
+        .submit-header-icon .ms {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+                    background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            filter: drop-shadow(0 0 10px rgba(255, 154, 0, 0.45));
+        }
+        .submit-header-icon .ms { font-size: 32px; -webkit-text-fill-color: #fff; color: #fff; background: none; filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.4)); }
+
+        /* Section headings with leading icon: tighten gap */
+        .changelog-title .ms,
+        .lb-list-header .ms,
+        .lb-completed-title .ms {
+            margin-right: 4px;
+            font-size: 22px;
+        }
+
+        /* Notification bell icon: drop the emoji-style and keep tone */
+        #notif-bell .ms {
+            font-size: 22px;
+            color: var(--text-muted);
+            transition: color 0.2s, transform 0.2s;
+        }
+        #notif-bell:hover .ms { color: var(--accent-2); transform: scale(1.08); }
+        #notif-bell.has-unread .ms {
+            color: var(--accent-1);
+            animation: shake 0.5s ease;
+        }
+
+        /* Level tag chevrons */
+        .lb-level-tag .ms { font-size: 16px; opacity: 0.7; }
+
+        /* Submit form labels: align icon + label */
+        .form-label .icon { display: inline-flex; align-items: center; justify-content: center; }
+
+        /* Hardest-level fire icon size */
+        .lb-hardest-icon .ms { font-size: 26px; }
+
+        /* Hide accidental empty icon spans */
+        .ms:empty { display: none; }
+
+        /* Selection */
+        ::selection { background: rgba(255, 154, 0, 0.35); color: #fff; }
+
+        /* =========================================================
+           Extra polish — micro-interactions & depth
+           ========================================================= */
+        /* Subtle pulsing dot on header logo */
+        .logo::after {
+            content: '';
+            display: inline-block;
+            width: 6px; height: 6px;
+            margin-left: 8px;
+            border-radius: 50%;
+            background: var(--accent-1);
+            box-shadow: 0 0 12px var(--accent-1), 0 0 24px rgba(255, 154, 0, 0.5);
+            animation: logoPulse 2.4s ease-in-out infinite;
+            vertical-align: middle;
+        }
+        @keyframes logoPulse {
+            0%, 100% { transform: scale(1); opacity: 0.85; }
+            50% { transform: scale(1.4); opacity: 1; }
+        }
+
+        /* Modal close: keep visible icon (the original × is text content) */
+        .modal-close, .auth-close { font-family: 'Poppins', sans-serif; }
+
+        /* Status badges: rounder + use icon-friendly inline-flex */
+        .status-badge { display: inline-flex; align-items: center; gap: 4px; }
+
+        /* Admin tabs: icon spacing */
+        .admin-tab { display: inline-flex; align-items: center; gap: 8px; }
+        .category-btn { display: inline-flex; align-items: center; gap: 8px; }
+
+        /* Buttons with leading icon */
+        .btn-primary, .btn-secondary, .btn-nav, .btn-nav-outline, .btn-nav-red,
+        .auth-btn, .submit-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Trophy emoji_events icon at the top of leaderboard headers — give it a soft accent ring */
+        .lb-list-header { display: flex; align-items: center; gap: 8px; }
+        .changelog-title { display: flex; align-items: center; gap: 10px; }
+
+        /* =========================================================
+           ROLE BADGES — material chips next to usernames (DEV/A/C…)
+           ========================================================= */
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 18px;
+            padding: 0 7px;
+            margin-left: 8px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            line-height: 1;
+            vertical-align: middle;
+            transform: translateY(-1px);
+            color: #fff;
+            background: linear-gradient(135deg, #2a2a35, #1a1a20);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow:
+                0 2px 6px rgba(0, 0, 0, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.18);
+            position: relative;
+            cursor: default;
+            user-select: none;
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        box-shadow 0.25s ease,
+                        filter 0.25s ease;
+        }
+        .role-badge::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, transparent 50%, rgba(0, 0, 0, 0.15) 100%);
+            pointer-events: none;
+        }
+        .role-badge:hover {
+            transform: translateY(-2px) scale(1.06);
+            box-shadow:
+                0 6px 14px rgba(0, 0, 0, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25);
+            filter: brightness(1.08);
+        }
+
+        /* DEV — orange/amber, signature accent */
+        .role-badge.role-dev {
+            background: linear-gradient(135deg, #ff7a18 0%, #ff9a00 50%, #ffce00 100%);
+            color: #1a0d00;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 154, 0, 0.55);
+            box-shadow:
+                0 3px 10px rgba(255, 154, 0, 0.45),
+                0 0 0 1px rgba(255, 206, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        }
+        .role-badge.role-dev:hover {
+            box-shadow:
+                0 6px 18px rgba(255, 154, 0, 0.6),
+                0 0 0 1px rgba(255, 206, 0, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        /* A (Admin) — indigo/violet, distinct but tonal */
+        .role-badge.role-admin {
+            background: linear-gradient(135deg, #4f7dff 0%, #7b5cff 55%, #b06bff 100%);
+            color: #ffffff;
+            border-color: rgba(140, 120, 255, 0.55);
+            box-shadow:
+                0 3px 10px rgba(99, 102, 241, 0.45),
+                0 0 0 1px rgba(139, 92, 246, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        }
+
+        /* C (Contributor) — softer pearly orange */
+        .role-badge.role-c {
+            background: linear-gradient(135deg, #ffb24a 0%, #ffce00 100%);
+            color: #2a1700;
+            border-color: rgba(255, 178, 74, 0.55);
+            box-shadow:
+                0 3px 8px rgba(255, 154, 0, 0.32),
+                0 0 0 1px rgba(255, 206, 0, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        /* When badge sits inside large titles, scale it a hair */
+        .lb-profile-name .role-badge,
+        #profile-name .role-badge {
+            font-size: 11px;
+            min-width: 26px;
+            height: 20px;
+            padding: 0 9px;
+            transform: translateY(-3px);
+        }
+
+        /* In leaderboard list items, keep them tighter */
+        .lb-name .role-badge {
+            margin-left: 6px;
+        }
+
+        /* =========================================================
+           Extra-polish round 2 — micro-flourishes
+           ========================================================= */
+        /* Stagger fade-in for leaderboard player items */
+        .lb-player-item {
+            animation: lbRowIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+        }
+        .lb-player-item:nth-child(1)  { animation-delay: 0.02s; }
+        .lb-player-item:nth-child(2)  { animation-delay: 0.05s; }
+        .lb-player-item:nth-child(3)  { animation-delay: 0.08s; }
+        .lb-player-item:nth-child(4)  { animation-delay: 0.11s; }
+        .lb-player-item:nth-child(5)  { animation-delay: 0.14s; }
+        .lb-player-item:nth-child(6)  { animation-delay: 0.17s; }
+        .lb-player-item:nth-child(7)  { animation-delay: 0.20s; }
+        .lb-player-item:nth-child(8)  { animation-delay: 0.23s; }
+        .lb-player-item:nth-child(9)  { animation-delay: 0.26s; }
+        .lb-player-item:nth-child(10) { animation-delay: 0.29s; }
+        .lb-player-item:nth-child(n+11) { animation-delay: 0.32s; }
+        @keyframes lbRowIn {
+            from { opacity: 0; transform: translateX(-12px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Top-3 ranks get a soft trophy tint */
+        .lb-player-item:nth-child(1) .lb-rank {
+            background: linear-gradient(135deg, #ffd86b, #ff9a00);
+            -webkit-background-clip: text;
+                    background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 8px rgba(255, 154, 0, 0.55));
+        }
+        .lb-player-item:nth-child(2) .lb-rank {
+            background: linear-gradient(135deg, #e6e8ee, #b9bcc7);
+            -webkit-background-clip: text;
+                    background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .lb-player-item:nth-child(3) .lb-rank {
+            background: linear-gradient(135deg, #cd8a4a, #8a5728);
+            -webkit-background-clip: text;
+                    background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Version badges (changelog): align baseline + soft inner highlight */
+        .version-badge {
+            display: inline-flex;
+            align-items: center;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(255, 154, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        /* Buttons: ripple-ish radial highlight following the cursor */
+        .btn-primary, .auth-btn, .submit-btn, .btn-nav {
+            background-image:
+                radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.18) 0%, transparent 45%),
+                var(--accent-gradient);
+        }
+
+        /* Search bar: leading icon hint via background */
+        .search-bar {
+            background-image: linear-gradient(transparent, transparent);
+        }
+
+        /* Modal stat card: tilt very slightly on hover */
+        .modal-stat-card {
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.3s, box-shadow 0.3s;
+        }
+        .modal-stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        /* Footer-ish floating star tint variation */
+        .bg-star { box-shadow: 0 0 12px rgba(255, 154, 0, 0.45), 0 0 22px rgba(255, 206, 0, 0.25); }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            .hero-title { animation: none; }
+            .submit-header::after { animation: none; }
+            .logo::after { animation: none; }
+            .lb-player-item { animation: none; }
+            * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+        }
     </style>
 <base target="_blank">
 <base target="_blank">
@@ -654,7 +1332,7 @@
     <!-- Notification Dropdown -->
 <div class="notif-dropdown" id="notif-dropdown">
     <div class="notif-header">
-        <span>🔔 Notifications</span>
+        <span><span class="ms">notifications</span> Notifications</span>
         <span style="font-size:12px; color:var(--text-dim); cursor:pointer;" onclick="markAllRead()">Mark all read</span>
     </div>
     <div class="notif-list" id="notif-list">
@@ -674,16 +1352,26 @@
         <button class="btn-secondary" onclick="navigateTo('submit')">Отправить Рекорд</button>
     </div>
     <div class="changelog-container">
-        <div class="changelog-title">📋 Changelog</div>
+        <div class="changelog-title"><span class="ms">assignment</span> Changelog</div>
 
         <!-- Новое обновление -->
+        <div class="changelog-item">
+            <div class="changelog-header">
+                <span class="version-badge">v0.4</span>
+                <span class="version-date">04.05.2026</span>
+            </div>
+            <div class="changelog-desc">
+                Улучшен дизайн сайта.
+            </div>
+        </div>
+
         <div class="changelog-item">
             <div class="changelog-header">
                 <span class="version-badge">v0.31</span>
                 <span class="version-date">03.05.2026</span>
             </div>
             <div class="changelog-desc">
-                Исправлены ошибки и недочёты
+                Исправлены ошибки и недочёты.
             </div>
         </div>
 
@@ -735,7 +1423,7 @@
             <h1 class="page-title">Leaderboard</h1>
             <div class="leaderboard-container">
                 <div class="lb-list-panel">
-                    <div class="lb-list-header">🏆 Top Players</div>
+                    <div class="lb-list-header"><span class="ms">emoji_events</span> Top Players</div>
                     <div id="lb-players-list"></div>
                 </div>
                 <div class="lb-info-panel" id="lb-info-panel">
@@ -750,25 +1438,25 @@
         <section id="submit-view">
             <div class="submit-container">
                 <div class="submit-header">
-                    <div class="submit-header-icon">🏆</div>
+                    <div class="submit-header-icon"><span class="ms">emoji_events</span></div>
                     <h2>Submit a new record</h2>
                     <p>Share your achievement with the community</p>
                 </div>
                 <div class="submit-form">
-                    <div class="submit-success" id="submit-success">✅ Рекорд успешно отправлен! Ожидайте проверки модератором.</div>
+                    <div class="submit-success" id="submit-success"><span class="ms">check_circle</span> Рекорд успешно отправлен! Ожидайте проверки модератором.</div>
                     <div class="form-group">
-                        <div class="form-label"><span class="icon">🎮</span> Level</div>
+                        <div class="form-label"><span class="icon"><span class="ms">sports_esports</span></span> Level</div>
                         <select class="form-select" id="submit-level">
                             <option value="">Выберите уровень...</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <div class="form-label"><span class="icon">🎬</span> Video</div>
+                        <div class="form-label"><span class="icon"><span class="ms">movie</span></span> Video</div>
                         <input type="text" class="form-input" id="submit-video" placeholder="https://youtube.com/... или https://t.me/...">
                         <div class="form-hint">Видео подтверждающее легитимность рекорда (YouTube, Telegram, и т.д.)</div>
                     </div>
                     <div class="form-group">
-                        <div class="form-label"><span class="icon">📝</span> Notes or comments <span class="optional">OPTIONAL</span></div>
+                        <div class="form-label"><span class="icon"><span class="ms">edit_note</span></span> Notes or comments <span class="optional">OPTIONAL</span></div>
                         <textarea class="form-input" id="submit-notes" rows="3" placeholder="Дополнительные заметки..."></textarea>
                     </div>
                     <div class="form-group">
@@ -786,21 +1474,21 @@
         <section id="admin-view">
             <h1 class="page-title">Admin Panel</h1>
             <div id="db-status" class="db-status local" style="margin-bottom: 15px;">
-                <span>⚠️</span> Local Mode — данные сохраняются в браузере
+                <span><span class="ms">warning</span></span> Local Mode — данные сохраняются в браузере
             </div>
             <div class="admin-tabs">
-    <button class="admin-tab active" onclick="switchAdminTab('records')" id="tab-records">📋 Records</button>
-    <button class="admin-tab" onclick="switchAdminTab('levels')" id="tab-levels">🎮 Levels</button>
-    <button class="admin-tab" onclick="switchAdminTab('players')" id="tab-players">👤 Players</button>
-    <button class="admin-tab" onclick="switchAdminTab('search')" id="tab-search">🔍 Search Records</button>
-    <button class="admin-tab" onclick="switchAdminTab('ranks')" id="tab-ranks">↕️ Ранги</button>
+    <button class="admin-tab active" onclick="switchAdminTab('records')" id="tab-records"><span class="ms">assignment</span> Records</button>
+    <button class="admin-tab" onclick="switchAdminTab('levels')" id="tab-levels"><span class="ms">sports_esports</span> Levels</button>
+    <button class="admin-tab" onclick="switchAdminTab('players')" id="tab-players"><span class="ms">person</span> Players</button>
+    <button class="admin-tab" onclick="switchAdminTab('search')" id="tab-search"><span class="ms">search</span> Search Records</button>
+    <button class="admin-tab" onclick="switchAdminTab('ranks')" id="tab-ranks"><span class="ms">swap_vert</span> Ранги</button>
 </div>
 
             <!-- Records Tab -->
             <div id="admin-records-tab" class="admin-panel">
                 <div class="admin-section-title">
                     <span>Pending Records</span>
-                    <button class="btn-nav" onclick="loadAdminRecords()" style="padding: 8px 16px; font-size: 12px;">🔄 Refresh</button>
+                    <button class="btn-nav" onclick="loadAdminRecords()" style="padding: 8px 16px; font-size: 12px;"><span class="ms">refresh</span> Refresh</button>
                 </div>
                 <div id="admin-records-list">
                     <div class="admin-empty">Loading records...</div>
@@ -811,7 +1499,7 @@
             <div id="admin-levels-tab" class="admin-panel" style="display:none;">
                 <div class="admin-section-title">
                     <span>Manage Levels</span>
-                    <button class="btn-nav" onclick="openLevelAdd()" style="padding: 8px 16px; font-size: 12px;">➕ Add Level</button>
+                    <button class="btn-nav" onclick="openLevelAdd()" style="padding: 8px 16px; font-size: 12px;"><span class="ms">add</span> Add Level</button>
                 </div>
                 <div id="admin-levels-list">
                     <div class="admin-empty">Loading levels...</div>
@@ -827,7 +1515,7 @@
     </div>
     <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
         <input type="text" class="search-bar admin-search" id="admin-player-search" placeholder="Search by username..." oninput="searchAdminPlayer(this.value)" style="flex: 1; min-width: 200px; margin-bottom: 0;">
-        <button class="btn-nav" onclick="loadAllPlayers()" style="padding: 10px 20px; font-size: 13px;">🔄 Load All</button>
+        <button class="btn-nav" onclick="loadAllPlayers()" style="padding: 10px 20px; font-size: 13px;"><span class="ms">refresh</span> Load All</button>
     </div>
     <div id="admin-players-list">
         <div class="admin-empty">Click "Load All" to see all players, or search by username</div>
@@ -836,7 +1524,7 @@
 <!-- Search Records Tab -->
 <div id="admin-search-tab" class="admin-panel" style="display:none;">
     <div class="admin-section-title">
-        <span>🔍 Search Records & Completions</span>
+        <span><span class="ms">search</span> Search Records & Completions</span>
     </div>
     
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
@@ -851,7 +1539,7 @@
     </div>
     
     <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-        <button class="btn-nav" onclick="loadAllRecords()" style="padding: 8px 16px; font-size: 12px;">🔄 Load All Records</button>
+        <button class="btn-nav" onclick="loadAllRecords()" style="padding: 8px 16px; font-size: 12px;"><span class="ms">refresh</span> Load All Records</button>
         <button class="btn-nav-outline" onclick="clearSearch()" style="padding: 8px 16px; font-size: 12px;">Clear</button>
     </div>
     
@@ -862,7 +1550,7 @@
 <div id="admin-ranks-tab" class="admin-panel" style="display:none;">
   <div class="admin-section-title">
     <span>Ручной сдвиг челленджей</span>
-    <button class="btn-nav" onclick="loadRankDrag()" style="padding: 8px 16px; font-size: 12px;">🔄 Обновить</button>
+    <button class="btn-nav" onclick="loadRankDrag()" style="padding: 8px 16px; font-size: 12px;"><span class="ms">refresh</span> Обновить</button>
   </div>
   <p style="color:var(--text-muted);font-size:13px;margin-bottom:15px;">
     Зажми уровень и перетащи вверх/вниз. Ранг изменится, дырки закроются автоматически.
@@ -914,7 +1602,7 @@
                     <div class="modal-stat-card"><span class="label">Category</span><div class="value" id="modal-cat"></div></div>
                 </div>
                 <div class="records-section">
-                    <h3>🏆 Records</h3>
+                    <h3><span class="ms">emoji_events</span> Records</h3>
                     <div id="modal-records-list"></div>
                 </div>
             </div>
@@ -933,7 +1621,7 @@
     
     <!-- НОВЫЕ ПОЛЯ ДЛЯ АВТО-ВСТАВКИ МЕЖДУ ТОПАМИ -->
     <div class="form-group" style="grid-column: 1 / -1; background: rgba(255,154,0,0.05); border: 1px dashed var(--accent-1); border-radius: 10px; padding: 12px; margin-bottom: 10px;">
-        <div style="font-size: 13px; color: var(--accent-2); font-weight: 700; margin-bottom: 8px;">⚡ Авто-вставка между топами (опционально)</div>
+        <div style="font-size: 13px; color: var(--accent-2); font-weight: 700; margin-bottom: 8px;"><span class="ms">bolt</span> Авто-вставка между топами (опционально)</div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
             <div><div class="form-label" style="font-size: 12px;">Выше топа (число меньше)</div><input type="number" class="form-input" id="edit-above-rank" placeholder="например 28"></div>
             <div><div class="form-label" style="font-size: 12px;">Ниже топа (число больше)</div><input type="number" class="form-input" id="edit-below-rank" placeholder="например 30"></div>
@@ -950,7 +1638,7 @@
     <div class="form-group"><div class="form-label">First Victor</div><input type="text" class="form-input" id="edit-fv"></div>
 </div>
                 <div style="display: flex; gap: 12px; margin-top: 25px;">
-                    <button class="submit-btn" onclick="saveLevel()">💾 Save Level</button>
+                    <button class="submit-btn" onclick="saveLevel()"><span class="ms">save</span> Save Level</button>
                     <button class="btn-nav-outline" onclick="closeLevelEdit()" style="flex: 1;">Cancel</button>
                 </div>
             </div>
@@ -985,16 +1673,16 @@
                     </div>
                 </div>
                 <div class="lb-hardest" id="profile-hardest" style="cursor: pointer; margin-bottom: 25px;">
-                    <div class="lb-hardest-icon">🔥</div>
+                    <div class="lb-hardest-icon"><span class="ms">local_fire_department</span></div>
                     <div class="lb-hardest-text">
                         <div class="lb-hardest-label">Hardest Level</div>
                         <div class="lb-hardest-name" id="profile-hardest-name">—</div>
                         <div class="lb-hardest-rank" id="profile-hardest-rank"></div>
                     </div>
-                    <span style="color:var(--accent-1);">›</span>
+                    <span style="color:var(--accent-1);"><span class="ms">chevron_right</span></span>
                 </div>
                 <div class="lb-completed-title" style="margin-bottom: 15px;">
-                    <span>⭐ Completed Levels</span>
+                    <span><span class="ms">star</span> Completed Levels</span>
                     <span class="lb-completed-count" id="profile-completed-count">0</span>
                 </div>
                 <div class="lb-levels-grid" id="profile-levels-grid"></div>
@@ -1068,12 +1756,12 @@ try {
             if (!error) {
                 dbConnected = true;
                 updateDbStatus();
-                console.log('✅ Supabase connected, loading data...');
+                console.log('<span class="ms">check_circle</span> Supabase connected, loading data...');
                 loadAllData();
             } else {
                 dbConnected = false;
                 updateDbStatus();
-                console.error('❌ Supabase connection failed:', error.message, error);
+                console.error('<span class="ms">close</span> Supabase connection failed:', error.message, error);
             }
         }).catch(err => {
             console.error('Supabase test error:', err);
@@ -1090,10 +1778,10 @@ function updateDbStatus() {
     if (!statusEl) return;
     if (dbConnected) {
         statusEl.className = 'db-status connected';
-        statusEl.innerHTML = '<span>✅</span> Supabase Connected';
+        statusEl.innerHTML = '<span><span class="ms">check_circle</span></span> Connected';
     } else {
         statusEl.className = 'db-status local';
-        statusEl.innerHTML = '<span>⚠️</span> Database Error — check console';
+        statusEl.innerHTML = '<span><span class="ms">warning</span></span> Database Error — check console';
     }
 }
 
@@ -1552,7 +2240,7 @@ function renderNotificationsList(notifs) {
     
     list.innerHTML = notifs.map(n => `
         <div class="notif-item ${n.is_read ? 'read' : 'unread'}" onclick="handleNotifClick('${n.id}', '${n.record_id}')">
-            <div class="notif-icon">${n.type === 'record_approved' ? '✅' : '❌'}</div>
+            <div class="notif-icon">${n.type === 'record_approved' ? '<span class="ms">check_circle</span>' : '<span class="ms">close</span>'}</div>
             <div class="notif-content">
                 <div class="notif-text">${n.message}</div>
                 <div class="notif-time">${new Date(n.created_at).toLocaleDateString()}</div>
@@ -1697,8 +2385,8 @@ async function loadPlayerRecordsForProfile(playerId, isOwnProfile) {
         grid.innerHTML = displayRecords.map(r => {
             const statusColor = r.status === 'approved' ? 'var(--success)' : 
                                r.status === 'rejected' ? 'var(--error)' : 'var(--warning)';
-            const statusText = r.status === 'approved' ? '✓' : 
-                              r.status === 'rejected' ? '✕' : '⏳';
+            const statusText = r.status === 'approved' ? '<span class="ms">check</span>' : 
+                              r.status === 'rejected' ? '<span class="ms">close</span>' : '<span class="ms">hourglass_top</span>';
             
             return `
                 <div class="lb-level-tag" style="border-color: ${statusColor}; position: relative;" 
@@ -1706,7 +2394,7 @@ async function loadPlayerRecordsForProfile(playerId, isOwnProfile) {
                      title="Status: ${r.status}">
                     <span style="color: ${statusColor}; font-weight: 800; margin-right: 4px;">${statusText}</span>
                     <span class="tag-rank">#${r.levels.rank}</span>${r.levels.name}
-                    ${r.video_url ? `<a href="${r.video_url}" target="_blank" style="margin-left: 6px; color: var(--accent-2);">🎬</a>` : ''}
+                    ${r.video_url ? `<a href="${r.video_url}" target="_blank" style="margin-left: 6px; color: var(--accent-2);"><span class="ms">movie</span></a>` : ''}
                 </div>
             `;
         }).join('');
@@ -1930,7 +2618,7 @@ async function renderLevelRecords(levelId) {
     container.innerHTML = '<div style="color: var(--text-dim); text-align: center; padding: 20px;">Загрузка рекордов...</div>';
     
     if (!supabase) {
-        container.innerHTML = '<div style="color: var(--error); text-align: center; padding: 30px;">❌ Supabase не подключен</div>';
+        container.innerHTML = '<div style="color: var(--error); text-align: center; padding: 30px;"><span class="ms">close</span> Supabase не подключен</div>';
         return;
     }
     
@@ -1962,7 +2650,7 @@ async function renderLevelRecords(levelId) {
         container.innerHTML = records.map((r, i) => {
             // Если видео — заглушка, показываем как "TG Channel"
             const isPlaceholder = r.video_url === 'https://t.me/CHALLENGE_GRIND' || r.video_url === 'https://t.me/challenge_grind';
-            const videoLabel = isPlaceholder ? '📱 TG Channel' : '🎬 Видео';
+            const videoLabel = isPlaceholder ? '<span class="ms">smartphone</span> TG Channel' : '<span class="ms">movie</span> Видео';
             const videoUrl = isPlaceholder ? 'https://t.me/CHALLENGE_GRIND' : r.video_url;
             
             return `
@@ -2023,9 +2711,9 @@ function renderLeaderboard() {
 
 function getRoleBadge(username) {
     const roles = {
-        'ItzTheRealMint': '<span style="background: linear-gradient(135deg, #ff9a00, #ffce00); color: #000; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; margin-left: 6px;">C</span>',
-        'MezZzGD': '<span style="background: linear-gradient(135deg, #ef4444, #f59e0b); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; margin-left: 6px;">DEV</span>',
-        'GMDTETO': '<span style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; margin-left: 6px;">A</span>'
+        'ItzTheRealMint': '<span class="role-badge role-c" title="Contributor">C</span>',
+        'MezZzGD':        '<span class="role-badge role-dev" title="Developer">DEV</span>',
+        'GMDTETO':        '<span class="role-badge role-admin" title="Admin">A</span>'
     };
     return roles[username] || '';
 }
@@ -2047,7 +2735,7 @@ function selectPlayer(playerName, allPlayers) {
         <div class="lb-profile-header" style="position: relative;">
             <div style="position: absolute; top: 0; right: 0;">
                 <button class="btn-nav" onclick="openProfileModal('${player.name}')" style="padding: 8px 16px; font-size: 12px;">
-                    👤 Full Profile
+                    <span class="ms">person</span> Full Profile
                 </button>
             </div>
             <div class="lb-profile-avatar">${initial}</div>
@@ -2073,16 +2761,16 @@ function selectPlayer(playerName, allPlayers) {
             </div>
         </div>
         <div class="lb-hardest" onclick="openLevelByName('${player.hardestName}')">
-            <div class="lb-hardest-icon">🔥</div>
+            <div class="lb-hardest-icon"><span class="ms">local_fire_department</span></div>
             <div class="lb-hardest-text">
                 <div class="lb-hardest-label">Hardest Level</div>
                 <div class="lb-hardest-name">${player.hardestName}</div>
                 <div class="lb-hardest-rank">Rank #${player.bestRank}</div>
             </div>
-            <span style="color:var(--accent-1);">›</span>
+            <span style="color:var(--accent-1);"><span class="ms">chevron_right</span></span>
         </div>
         <div class="lb-completed-title">
-            <span>⭐ Completed Levels</span>
+            <span><span class="ms">star</span> Completed Levels</span>
             <span class="lb-completed-count">${player.count}</span>
         </div>
         <div class="lb-levels-grid">
@@ -2410,16 +3098,16 @@ function renderSearchResults(records, title) {
                 <td><span class="status-badge ${statusClass}">${r.status}</span></td>
                 <td>
                     ${r.video_url 
-                        ? `<a href="${r.video_url}" target="_blank">${isPlaceholder ? '📱 TG' : '🎬 Video'}</a>` 
+                        ? `<a href="${r.video_url}" target="_blank">${isPlaceholder ? '<span class="ms">smartphone</span> TG' : '<span class="ms">movie</span> Video'}</a>` 
                         : '—'}
                 </td>
                 <td>${new Date(r.submitted_at).toLocaleDateString()}</td>
                 <td>
                     <div class="admin-actions">
-                        ${r.status !== 'approved' ? `<button class="btn-icon approve" onclick="updateRecordStatus('${r.id}', 'approved')" title="Approve">✓</button>` : ''}
-                        ${r.status !== 'rejected' ? `<button class="btn-icon reject" onclick="updateRecordStatus('${r.id}', 'rejected')" title="Reject">✕</button>` : ''}
-                        <button class="btn-icon edit" onclick="editRecordUrl('${r.id}')" title="Edit URL">🔗</button>
-                        <button class="btn-icon delete" onclick="deleteRecord('${r.id}')" title="Delete">🗑</button>
+                        ${r.status !== 'approved' ? `<button class="btn-icon approve" onclick="updateRecordStatus('${r.id}', 'approved')" title="Approve"><span class="ms">check</span></button>` : ''}
+                        ${r.status !== 'rejected' ? `<button class="btn-icon reject" onclick="updateRecordStatus('${r.id}', 'rejected')" title="Reject"><span class="ms">close</span></button>` : ''}
+                        <button class="btn-icon edit" onclick="editRecordUrl('${r.id}')" title="Edit URL"><span class="ms">link</span></button>
+                        <button class="btn-icon delete" onclick="deleteRecord('${r.id}')" title="Delete"><span class="ms">delete</span></button>
                     </div>
                 </td>
             </tr>
@@ -2479,10 +3167,10 @@ async function loadAdminRecords() {
                     <td>${new Date(record.submitted_at).toLocaleDateString()}</td>
                     <td>
                         <div class="admin-actions">
-                            ${record.status !== 'approved' ? `<button class="btn-icon approve" onclick="updateRecordStatus('${record.id}', 'approved')" title="Approve">✓</button>` : ''}
-                            ${record.status !== 'rejected' ? `<button class="btn-icon reject" onclick="updateRecordStatus('${record.id}', 'rejected')" title="Reject">✕</button>` : ''}
-                            <button class="btn-icon delete" onclick="deleteRecord('${record.id}')" title="Delete">🗑</button>
-                            <button class="btn-icon edit" onclick="editRecordUrl('${record.id}')" title="Edit URL">🔗</button>
+                            ${record.status !== 'approved' ? `<button class="btn-icon approve" onclick="updateRecordStatus('${record.id}', 'approved')" title="Approve"><span class="ms">check</span></button>` : ''}
+                            ${record.status !== 'rejected' ? `<button class="btn-icon reject" onclick="updateRecordStatus('${record.id}', 'rejected')" title="Reject"><span class="ms">close</span></button>` : ''}
+                            <button class="btn-icon delete" onclick="deleteRecord('${record.id}')" title="Delete"><span class="ms">delete</span></button>
+                            <button class="btn-icon edit" onclick="editRecordUrl('${record.id}')" title="Edit URL"><span class="ms">link</span></button>
                         </div>
                     </td>
                 </tr>
@@ -2633,7 +3321,7 @@ async function loadAdminLevels() {
     container.innerHTML = '<div class="admin-empty">Loading levels...</div>';
     
     if (!supabase) {
-        container.innerHTML = '<div class="admin-empty" style="color: var(--error);">❌ Supabase not initialized</div>';
+        container.innerHTML = '<div class="admin-empty" style="color: var(--error);"><span class="ms">close</span> Supabase not initialized</div>';
         return;
     }
     
@@ -2646,7 +3334,7 @@ async function loadAdminLevels() {
         
         if (error) {
             console.error('Supabase error:', error);
-            container.innerHTML = `<div class="admin-empty" style="color: var(--error);">❌ Database error: ${error.message}</div>`;
+            container.innerHTML = `<div class="admin-empty" style="color: var(--error);"><span class="ms">close</span> Database error: ${error.message}</div>`;
             return;
         }
 
@@ -2692,8 +3380,8 @@ async function loadAdminLevels() {
                     <td>${level.video ? '<a href="' + level.video + '" target="_blank">Link</a>' : '—'}</td>
                     <td>
                         <div class="admin-actions">
-                            <button class="btn-icon edit" onclick="openLevelEditById(${level.id})" title="Edit">✎</button>
-                            <button class="btn-icon delete" onclick="deleteLevel(${level.id})" title="Delete">🗑</button>
+                            <button class="btn-icon edit" onclick="openLevelEditById(${level.id})" title="Edit"><span class="ms">edit</span></button>
+                            <button class="btn-icon delete" onclick="deleteLevel(${level.id})" title="Delete"><span class="ms">delete</span></button>
                         </div>
                     </td>
                 </tr>
@@ -2705,7 +3393,7 @@ async function loadAdminLevels() {
         
     } catch (err) {
         console.error('Exception in loadAdminLevels:', err);
-        container.innerHTML = `<div class="admin-empty" style="color: var(--error);">❌ Error: ${err.message}</div>`;
+        container.innerHTML = `<div class="admin-empty" style="color: var(--error);"><span class="ms">close</span> Error: ${err.message}</div>`;
     }
 }
 
@@ -2982,7 +3670,7 @@ async function loadAllPlayers() {
     container.innerHTML = '<div class="admin-empty">Loading players...</div>';
     
     if (!supabase) {
-        container.innerHTML = '<div class="admin-empty" style="color: var(--error);">❌ Supabase not connected</div>';
+        container.innerHTML = '<div class="admin-empty" style="color: var(--error);"><span class="ms">close</span> Supabase not connected</div>';
         return;
     }
     
@@ -3001,7 +3689,7 @@ async function loadAllPlayers() {
         renderPlayersList(allPlayersCache);
     } catch (err) {
         console.error('Error loading players:', err);
-        container.innerHTML = `<div class="admin-empty" style="color: var(--error);">❌ Error: ${err.message}</div>`;
+        container.innerHTML = `<div class="admin-empty" style="color: var(--error);"><span class="ms">close</span> Error: ${err.message}</div>`;
     }
 }
 
@@ -3035,8 +3723,8 @@ else if (player.password) {
 }
 
 const pwdStatus = passwordValue 
-    ? `🔑 ${passwordValue}` 
-    : '⚠️ No password';
+    ? `<span class="ms">key</span> ${passwordValue}` 
+    : '<span class="ms">warning</span> No password';
         
         html += `
             <div style="margin-bottom: 20px; border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; background: ${isBanned ? 'rgba(239,68,68,0.05)' : 'var(--card-bg)'};">
@@ -3055,8 +3743,8 @@ const pwdStatus = passwordValue
                     </div>
                     <div style="display: flex; gap: 8px;">
                         ${isBanned 
-                            ? `<button class="btn-icon approve" onclick="toggleBanPlayer('${player.id}', '${player.username}', false)" title="Unban">🔓 Unban</button>`
-                            : `<button class="btn-icon reject" onclick="toggleBanPlayer('${player.id}', '${player.username}', true)" title="Ban">🔨 Ban</button>`
+                            ? `<button class="btn-icon approve" onclick="toggleBanPlayer('${player.id}', '${player.username}', false)" title="Unban"><span class="ms">lock_open</span> Unban</button>`
+                            : `<button class="btn-icon reject" onclick="toggleBanPlayer('${player.id}', '${player.username}', true)" title="Ban"><span class="ms">build</span> Ban</button>`
                         }
                     </div>
                 </div>
@@ -3219,7 +3907,7 @@ async function loadAdminBans() {
                     <td>${player.ban_reason || 'Not specified'}</td>
                     <td>
                         <div class="admin-actions">
-                            <button class="btn-icon approve" onclick="unbanPlayerById('${player.id}', '${player.username}')" title="Unban">🔓</button>
+                            <button class="btn-icon approve" onclick="unbanPlayerById('${player.id}', '${player.username}')" title="Unban"><span class="ms">lock_open</span></button>
                         </div>
                     </td>
                 </tr>
