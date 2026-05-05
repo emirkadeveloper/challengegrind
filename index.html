@@ -3424,14 +3424,16 @@ async function deleteLevel(levelId) {
         // 1. Получаем имя для алерта
         const { data: level, error: fetchError } = await supabase
             .from('levels')
-            .select('id, rank, category, name')
+            .select('name')
             .eq('id', levelId)
             .single();
         
         if (fetchError) throw fetchError;
         
-        // 2. Удаляем через новую безопасную функцию
-        const { error } = await supabase.rpc('delete_level_safe', { p_level_id: levelId });
+        // 2. Удаляем через новую атомарную функцию (все внутри SQL, без триггеров)
+        const { error } = await supabase.rpc('delete_level_atomic', { 
+            p_level_id: levelId 
+        });
         if (error) throw error;
         
         // 3. Перезагружаем все один раз
