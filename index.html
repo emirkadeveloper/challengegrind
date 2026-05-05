@@ -3421,7 +3421,7 @@ async function deleteLevel(levelId) {
     if (!confirm('DELETE level? This will also delete ALL records, completions and recalculate scores!')) return;
     
     try {
-        // Получаем данные уровня ДО удаления
+        // 1. Получаем имя для алерта
         const { data: level, error: fetchError } = await supabase
             .from('levels')
             .select('id, rank, category, name')
@@ -3430,32 +3430,17 @@ async function deleteLevel(levelId) {
         
         if (fetchError) throw fetchError;
         
-        // Удаляем уровень (триггер в БД удалит completions и пересчитает игроков)
-        const { error } = await supabase.from('levels').delete().eq('id', levelId);
+        // 2. Удаляем через новую безопасную функцию
+        const { error } = await supabase.rpc('delete_level_safe', { 
+            p_level_id: levelId 
+        });
         if (error) throw error;
         
-        // Заполняем дырку в рангах
-        if (level && level.rank > 0) {
-            await supabase.rpc('fill_rank_gap', {
-                p_category: level.category,
-                p_removed_rank: level.rank
-            });
-        }
-        
-        // Перезагружаем данные
-        await loadLevels();
-        await loadPlayers();
+        // 3. Перезагружаем все один раз
+        await loadAllData();
         loadAdminLevels();
         
-        // Обновляем текущий вид
-        if (document.getElementById('lists-view').style.display !== 'none') {
-            renderLevels(currentData, currentCategory);
-        }
-        if (document.getElementById('leaderboard-view').style.display !== 'none') {
-            renderLeaderboard();
-        }
-        
-        alert(`Level "${level.name}" deleted! All scores recalculated.`);
+        alert(`Level "${level.name}" deleted! Ranks normalized.`);
         
     } catch (err) {
         alert('Error: ' + err.message);
