@@ -3431,7 +3431,7 @@ async function deleteLevel(levelId) {
         if (fetchError) throw fetchError;
         
         // 2. Удаляем через новую безопасную функцию
-        const { error } = await supabase.rpc('delete_level_safe_v2', { p_level_id: levelId });
+        const { error } = await supabase.rpc('delete_level_safe', { p_level_id: levelId });
         if (error) throw error;
         
         // 3. Перезагружаем все один раз
