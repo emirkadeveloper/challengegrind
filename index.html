@@ -2199,13 +2199,12 @@ async function loadNotifications() {
     if (!currentUser || !supabase) return;
     
     try {
-        const { data: notifs, error } = await supabase
-            .from('notifications')
-            .select('*')
-            .eq('player_id', currentUser.id)
-            .eq('is_read', false)
-            .order('created_at', { ascending: false })
-            .limit(20);
+        const { data } = await supabase
+          .from('notifications')
+          .select('*')
+          .eq('player_id', currentUser.id)
+          .order('created_at', { ascending: false })
+          .limit(5);                    
         
         if (error) throw error;
         
@@ -2274,7 +2273,7 @@ async function markAllRead() {
         if (countEl) countEl.style.display = 'none';
         if (bell) bell.classList.remove('has-unread');
         
-        renderNotificationsList([]);
+        await loadNotifications();
         
     } catch (err) {
         console.error('Error marking read:', err);
