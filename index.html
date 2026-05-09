@@ -3430,7 +3430,7 @@ async function deleteLevel(levelId) {
         if (fetchError) throw fetchError;
         
         // 2. Удаляем через новую атомарную функцию (все внутри SQL, без триггеров)
-        const { error } = await supabase.rpc('delete_level_atomic', { 
+        const { error } = await supabase.rpc('delete_level_final', { 
             p_level_id: levelId 
         });
         if (error) throw error;
