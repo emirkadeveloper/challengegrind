@@ -2966,13 +2966,13 @@ async function loadNotifications() {
             .from('notifications')
             .select('*')
             .eq('player_id', currentUser.id)
-            .eq('is_read', false)
             .order('created_at', { ascending: false })
             .limit(20);
         
         if (error) throw error;
         
-        const count = notifs?.length || 0;
+        const list = notifs || [];
+        const count = list.filter(n => !n.is_read).length;
         const countEl = document.getElementById('notif-count');
         const bell = document.getElementById('notif-bell');
         
@@ -2985,12 +2985,13 @@ async function loadNotifications() {
             bell.classList.toggle('has-unread', count > 0);
         }
         
-        renderNotificationsList(notifs || []);
+        renderNotificationsList(list);
         
     } catch (err) {
         console.error('Error loading notifications:', err);
     }
 }
+
 
 function renderNotificationsList(notifs) {
     const list = document.getElementById('notif-list');
@@ -3037,12 +3038,17 @@ async function markAllRead() {
         if (countEl) countEl.style.display = 'none';
         if (bell) bell.classList.remove('has-unread');
         
-        renderNotificationsList([]);
+        // НЕ очищаем список — просто переводим визуально из unread в read
+        document.querySelectorAll('#notif-list .notif-item.unread').forEach(el => {
+            el.classList.remove('unread');
+            el.classList.add('read');
+        });
         
     } catch (err) {
         console.error('Error marking read:', err);
     }
 }
+
 
 function handleNotifClick(notifId, recordId) {
     // Закрываем дропдаун
