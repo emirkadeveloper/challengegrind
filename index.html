@@ -16,7 +16,10 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,500,0,0&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0,0" rel="stylesheet">
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+
 
     <style>
 
@@ -4230,7 +4233,7 @@ main > .admin-panel:not(#admin-view .admin-panel) {
 
         <ul>
 
-            <li><span class="ms" style="color:#ff4444;">whatshot</span> Добавлен <b>Impossible Challenge List</b> — отдельная категория самых жёстких уровней</li>
+            <li><span class="ms" style="color:#ff4444;">whatshot</span> Добавлен <b>Impossible Challenge List</b> — отдельная категория самых жёстких уровней с WR-холдерами</li>
 
             <li><span class="ms" style="color:var(--accent-1);">touch_app</span> Полностью переработан селект уровня в Submit</li>
 
@@ -5348,10 +5351,6 @@ main > .admin-panel:not(#admin-view .admin-panel) {
 
 <script>
 
-const SUPABASE_URL = 'https://ddpvnotxxgqgbnofbrgn.supabase.co';
-
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRkcHZub3R4eGdxZ2Jub2ZicmduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3MjM3MDgsImV4cCI6MjA5MzI5OTcwOH0.DYedtWU5VeyrRBwE9Jm-cSngjlaTarl2e-KG8jvTRJQ';
-
 let supabase = null;
 
 let currentUser = null;
@@ -5377,6 +5376,12 @@ let selectedPlayer = null;
 let adminTab = 'records';
 
 let dbConnected = false;
+
+const SUPABASE_URL = (window.APP_CONFIG && window.APP_CONFIG.SUPABASE_URL) || '';
+const SUPABASE_ANON_KEY = (window.APP_CONFIG && window.APP_CONFIG.SUPABASE_KEY) || '';
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.error('Supabase config missing! Создай config.js на основе .env');
+}
 
 const LS_KEYS = {
 
