@@ -4123,10 +4123,6 @@ main > .admin-panel:not(#admin-view .admin-panel) {
 
     </style>
 
-<base target="_blank">
-
-<base target="_blank">
-
 </head>
 
 <body>
@@ -5377,11 +5373,18 @@ let adminTab = 'records';
 
 let dbConnected = false;
 
-const SUPABASE_URL = (window.APP_CONFIG && window.APP_CONFIG.SUPABASE_URL) || '';
-const SUPABASE_ANON_KEY = (window.APP_CONFIG && window.APP_CONFIG.SUPABASE_KEY) || '';
+var SUPABASE_URL = '';
+var SUPABASE_ANON_KEY = '';
+try {
+    if (window.APP_CONFIG) {
+        SUPABASE_URL = window.APP_CONFIG.SUPABASE_URL || '';
+        SUPABASE_ANON_KEY = window.APP_CONFIG.SUPABASE_KEY || '';
+    }
+} catch(_) {}
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    console.error('Supabase config missing! Создай config.js на основе .env');
+    console.error('Supabase config missing! Проверь config.js / .env');
 }
+
 
 const LS_KEYS = {
 
