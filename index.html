@@ -7387,15 +7387,13 @@ function renderLeaderboard() {
 
 function getRoleBadge(username) {
 
-    const roles = {
+    const roles = {};
 
-        'ItzTheRealMint': '<span class="role-badge role-c" title="Contributor">C</span>',
+    roles[atob('SXR6VGhlUmVhbE1pbnQ=')] = '<span class="role-badge role-c" title="Contributor">C</span>';
 
-        'MezZzGD':        '<span class="role-badge role-dev" title="Developer">DEV</span>',
+    roles[atob('TWV6WnpHRA==')] = '<span class="role-badge role-dev" title="Developer">DEV</span>';
 
-        'GMDTETO':        '<span class="role-badge role-admin" title="Admin">A</span>'
-
-    };
+    roles[atob('R01EVEVUTw==')] = '<span class="role-badge role-admin" title="Admin">A</span>';
 
     return roles[username] || '';
 
@@ -7815,7 +7813,7 @@ function isAdmin() {
 
     if (!currentUser) return false;
 
-    const adminUsers = ['ItzTheRealMint', 'MezZzGD', 'GMDTETO'];
+    const adminUsers = [atob('SXR6VGhlUmVhbE1pbnQ='), atob('TWV6WnpHRA=='), atob('R01EVEVUTw==')];
 
     return adminUsers.includes(currentUser.username) || currentUser.isAdmin;
 
